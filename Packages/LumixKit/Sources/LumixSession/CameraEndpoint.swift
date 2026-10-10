@@ -29,4 +29,23 @@ public struct CameraFilter: Sendable, Equatable {
     public func accepts(vendorID: Int, productID: Int, isUSB: Bool, acceptsPTPCommands: Bool) -> Bool {
         isUSB && acceptsPTPCommands && vendorID == Self.panasonicVendorID && productIDs.contains(productID)
     }
+
+    /// Parses a comma- or space-separated list of hexadecimal USB product IDs such as `2382, 0x2374`;
+    /// `nil` when the list is empty or any entry is not a 16-bit hexadecimal number.
+    public static func parseProductIDs(_ text: String) -> Set<Int>? {
+        let entries = text.split(whereSeparator: { $0 == "," || $0.isWhitespace }).map(String.init)
+        guard !entries.isEmpty else { return nil }
+        var ids: Set<Int> = []
+        for entry in entries {
+            let digits = entry.lowercased().hasPrefix("0x") ? String(entry.dropFirst(2)) : entry
+            guard !digits.isEmpty, digits.count <= 4, let value = Int(digits, radix: 16) else { return nil }
+            ids.insert(value)
+        }
+        return ids
+    }
+
+    /// Formats product IDs as sorted four-digit hexadecimal numbers separated by commas.
+    public static func formatProductIDs(_ ids: Set<Int>) -> String {
+        ids.sorted().map { String(format: "%04X", $0) }.joined(separator: ", ")
+    }
 }
