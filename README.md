@@ -12,7 +12,9 @@ Panasonic's LUMIX Webcam Software does not support macOS 14.1 and later. LUMIX W
 app built on Apple's Core Media I/O camera extension API.
 
 LUMIX Webcam is an independent project. It is not made, endorsed or supported by Panasonic.
-LUMIX is a trademark of Panasonic.
+LUMIX and Panasonic are trademarks or registered trademarks of Panasonic Holdings Corporation and
+are used here only to name the cameras this app works with. All other trademarks belong to their
+respective owners.
 
 ## How it works
 
@@ -144,3 +146,8 @@ LUMIX Webcam is written in English and translated into Korean and Japanese. Each
 `ja.lproj` string table must hold exactly the keys of its English table, with the same format
 specifiers, and every localized string in the app's Swift sources must have an English entry.
 `scripts/check-localization.py` checks both.
+
+## Trademarks
+
+LUMIX and Panasonic are trademarks or registered trademarks of Panasonic Holdings Corporation.
+LUMIX Webcam is not affiliated with, endorsed by or supported by Panasonic.
