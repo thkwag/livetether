@@ -16,11 +16,11 @@ let package = Package(
         .target(name: "LumixSession", dependencies: ["LumixProtocol"]),
         .target(name: "LumixImageCapture", dependencies: ["LumixProtocol", "LumixSession"]),
         .target(name: "LumixVideo"),
-        .target(name: "LumixVirtualCamera", dependencies: ["LumixVideo", "LumixProtocol"]),
+        .target(name: "LumixVirtualCamera", dependencies: ["LumixVideo", "LumixProtocol", "LumixSession"]),
         .target(name: "LumixTestSupport", path: "Tests/LumixTestSupport"),
         .testTarget(name: "LumixProtocolTests", dependencies: ["LumixProtocol", "LumixTestSupport"]),
         .testTarget(name: "LumixSessionTests", dependencies: ["LumixSession", "LumixProtocol", "LumixTestSupport"]),
         .testTarget(name: "LumixVideoTests", dependencies: ["LumixVideo", "LumixTestSupport"]),
-        .testTarget(name: "LumixVirtualCameraTests", dependencies: ["LumixVirtualCamera", "LumixVideo", "LumixTestSupport"]),
+        .testTarget(name: "LumixVirtualCameraTests", dependencies: ["LumixVirtualCamera", "LumixVideo", "LumixSession", "LumixTestSupport"]),
     ]
 )

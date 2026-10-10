@@ -1,4 +1,5 @@
 import Foundation
+import LumixSession
 import LumixTestSupport
 import LumixVideo
 import os
@@ -94,5 +95,20 @@ struct IdentityTests {
     func identifiers() {
         #expect(Set([VirtualCameraIdentity.deviceID, VirtualCameraIdentity.sourceStreamID, VirtualCameraIdentity.sinkStreamID]).count == 3)
         #expect(VirtualCameraIdentity.sourceActiveNotification != VirtualCameraIdentity.linkStatusNotification)
+    }
+}
+
+@Suite("Link indicator mapping")
+struct LinkIndicatorMappingTests {
+    @Test("Every link phase maps to the indicator the standby text needs")
+    func mapping() {
+        let camera = CameraID("camera")
+        #expect(LinkIndicator(phase: .searching) == .waitingForCamera)
+        #expect(LinkIndicator(phase: .opening(camera)) == .connecting)
+        #expect(LinkIndicator(phase: .ready(camera)) == .preparing)
+        #expect(LinkIndicator(phase: .startingLiveView(camera)) == .preparing)
+        #expect(LinkIndicator(phase: .streaming(camera)) == .streaming)
+        #expect(LinkIndicator(phase: .waitingToRetry(camera, .openFailed)) == .cameraUnavailable)
+        #expect(LinkIndicator(phase: .waitingToRetry(camera, .communicationFailed)) == .communicationError)
     }
 }
