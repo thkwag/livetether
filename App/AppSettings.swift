@@ -13,7 +13,6 @@ final class AppSettings {
         static let preferredSizes = "preferredLiveViewSizes"
         static let setupGuideCompleted = "setupGuideCompleted"
         static let autoFramingEnabled = "autoFramingEnabled"
-        static let eyeContactEnabled = "eyeContactEnabled"
         static let framingShot = "framingShot"
     }
 
@@ -34,11 +33,6 @@ final class AppSettings {
         didSet { defaults.set(autoFramingEnabled, forKey: Key.autoFramingEnabled) }
     }
 
-    /// Whether the eyes are redirected toward the camera while the face looks straight ahead.
-    var eyeContactEnabled: Bool {
-        didSet { defaults.set(eyeContactEnabled, forKey: Key.eyeContactEnabled) }
-    }
-
     /// How much of a person the automatic framing shows.
     var framingShot: FramingShot {
         didSet { defaults.set(framingShot.rawValue, forKey: Key.framingShot) }
@@ -51,7 +45,6 @@ final class AppSettings {
         preferredSizes = [:]
         setupGuideCompleted = defaults.bool(forKey: Key.setupGuideCompleted)
         autoFramingEnabled = defaults.bool(forKey: Key.autoFramingEnabled)
-        eyeContactEnabled = defaults.bool(forKey: Key.eyeContactEnabled)
         framingShot = defaults.string(forKey: Key.framingShot).flatMap(FramingShot.init(rawValue:)) ?? .headAndShoulders
         preferredSizes = loadPreferredSizes()
     }

@@ -124,20 +124,6 @@ struct CameraSettings: View {
                 }
                 SettingsNote("Keeps the people in front of the camera in the middle of the picture and follows them as they move, giving room on the side they look to. People are found on this Mac only; no picture is stored or sent.")
             }
-            SettingsGroup("Eye Contact") {
-                LabeledContent("Eye Contact") {
-                    Toggle("Eye Contact", isOn: Binding(
-                        get: { model.settings.eyeContactEnabled && model.eyeContactAvailable },
-                        set: { model.setEyeContact($0) }
-                    ))
-                    .toggleStyle(.switch)
-                    .labelsHidden()
-                    .disabled(!model.eyeContactAvailable)
-                }
-                SettingsNote("Moves the eyes so they look into the camera while the face looks straight ahead, and fades out as the head turns. The eyes are changed on this Mac only.")
-                Divider()
-                GazeModelRow(model: model)
-            }
             SettingsGroup("Live View") {
                 LabeledContent("Current size") {
                     Text(verbatim: status.liveView.map { StatusText.size($0.current) } ?? String(localized: "Not available"))
@@ -275,49 +261,6 @@ struct SettingsRowStyle: LabeledContentStyle {
             configuration.content
                 .multilineTextAlignment(.trailing)
                 .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-}
-
-/// The gaze model: where it comes from, its terms, and downloading or removing it.
-struct GazeModelRow: View {
-    let model: AppModel
-    @State private var confirmsDownload = false
-
-    var body: some View {
-        LabeledContent("Model") {
-            Text(verbatim: status).foregroundStyle(.secondary)
-        }
-        SettingsNote("Eye Contact uses the gaze model of \"Look at Me! Correcting Eye Gaze in Live Video Communication\" (Hsu et al., 2019). Its code and weights are published under the BSD 3-Clause license; the weights were trained on data offered for non-commercial use only. LUMIX Webcam does not include them: they are downloaded from the authors' repository when you ask.")
-        HStack {
-            if let page = model.gazeModel.sourcePage {
-                Link("Model Source", destination: page)
-            }
-            Spacer()
-            switch model.gazeModel.state {
-            case .ready:
-                Button("Remove Model") { model.removeGazeModel() }
-            case .downloading:
-                ProgressView().controlSize(.small)
-            case .notDownloaded, .failed:
-                Button("Download Model…") { confirmsDownload = true }
-            }
-        }
-        .confirmationDialog("Download the eye contact model?", isPresented: $confirmsDownload) {
-            Button("Accept and Download") {
-                Task { await model.downloadGazeModel() }
-            }
-        } message: {
-            Text("About 6 MB is downloaded from github.com/chihfanhsu/gaze_correction. The weights may be used for non-commercial purposes only. Download only if your use is non-commercial.")
-        }
-    }
-
-    private var status: String {
-        switch model.gazeModel.state {
-        case .notDownloaded: String(localized: "Not downloaded")
-        case .downloading: String(localized: "Downloading")
-        case .ready: String(localized: "Ready")
-        case .failed(let reason): String(localized: "Failed: \(reason)")
         }
     }
 }

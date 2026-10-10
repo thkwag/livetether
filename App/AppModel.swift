@@ -19,7 +19,6 @@ final class AppModel {
     let settings: AppSettings
     let installer = ExtensionInstaller()
     let loginItem = LoginItem()
-    let gazeModel = GazeModelStore()
     let link: CameraLinkController
     let legacyPluginInstalled: Bool
 
@@ -47,7 +46,6 @@ final class AppModel {
 
         link.preferredSize = { [weak settings] model in settings?.preferredSize(for: model) }
         pipeline.setAutoFraming(settings.autoFramingEnabled, shot: settings.framingShot)
-        pipeline.setEyeContact(gazeModel.corrector, enabled: settings.eyeContactEnabled)
         discovery.onEvent = { [weak self] event in self?.link.handle(event) }
         observeSourceActivity()
         publishStatusPeriodically()
@@ -106,25 +104,6 @@ final class AppModel {
     func setFramingShot(_ shot: FramingShot) {
         settings.framingShot = shot
         pipeline.setAutoFraming(settings.autoFramingEnabled, shot: shot)
-    }
-
-    /// Whether the gaze weights have been downloaded and the correction can run.
-    var eyeContactAvailable: Bool { gazeModel.state == .ready }
-
-    func setEyeContact(_ enabled: Bool) {
-        settings.eyeContactEnabled = enabled
-        pipeline.setEyeContact(gazeModel.corrector, enabled: enabled)
-    }
-
-    /// Downloads the gaze weights after the user accepted their terms, then applies the setting.
-    func downloadGazeModel() async {
-        await gazeModel.download()
-        pipeline.setEyeContact(gazeModel.corrector, enabled: settings.eyeContactEnabled)
-    }
-
-    func removeGazeModel() {
-        gazeModel.remove()
-        pipeline.setEyeContact(nil, enabled: false)
     }
 
     func applyProductIDs(_ ids: Set<Int>) {

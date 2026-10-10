@@ -17,5 +17,3 @@ DerivedData/
 .swiftpm/
 xcuserdata/
 
-# Python environment for the gaze model scripts
-.venv-gaze/
