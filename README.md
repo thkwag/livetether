@@ -1,4 +1,8 @@
-# LUMIX Webcam
+<p align="center">
+  <img src="App/Assets.xcassets/AppIcon.appiconset/icon_128x128@2x.png" width="128" height="128" alt="LUMIX Webcam app icon">
+</p>
+
+<h1 align="center">LUMIX Webcam</h1>
 
 LUMIX Webcam turns the live view of a Panasonic LUMIX camera connected over USB into a webcam on
 macOS 14.1 and later. Any app that uses a camera can choose it: FaceTime, QuickTime Player, OBS,
@@ -42,13 +46,27 @@ sends commands that change camera settings, format a card or update firmware.
 3. Set the camera's USB mode to PC (Tether) and connect it to the Mac.
 4. In the app you want to use, choose LUMIX Webcam as the camera.
 
-The settings window opens from the menu bar icon:
+<p align="center">
+  <img src=".github/images/setup-guide.png" width="600" alt="The setup guide">
+</p>
+
+The menu bar icon opens a menu with the camera status, the settings window and the setup guide.
+
+<p align="center">
+  <img src=".github/images/menu.png" width="271" alt="The menu bar menu">
+</p>
 
 | Tab | Settings |
 | --- | --- |
 | General | Install or uninstall the camera extension, open LUMIX Webcam at login |
 | Camera | The live-view size the camera sends (Automatic picks the largest size at 30 fps), frame statistics |
 | Advanced | The USB product IDs of the cameras LUMIX Webcam uses (default `0x2382`) |
+
+<p align="center">
+  <img src=".github/images/settings-general.png" width="400" alt="The General settings tab">
+  <img src=".github/images/settings-camera.png" width="400" alt="The Camera settings tab">
+  <img src=".github/images/settings-advanced.png" width="400" alt="The Advanced settings tab">
+</p>
 
 If the camera is connected but LUMIX Webcam does not find it, look up the camera's product ID in
 System Information > USB and add it on the Advanced tab.
@@ -70,11 +88,27 @@ install it while it runs from the Applications folder. To build under your own A
 team, set `DEVELOPMENT_TEAM` in `project.yml`, change `bundleIdPrefix` there, and change
 `ExtensionInstaller.extensionIdentifier` in `App/ExtensionInstaller.swift` to match.
 
+The app icon is drawn by a script; run it again after changing the drawing:
+
+```sh
+swift scripts/make-app-icon.swift App/Assets.xcassets/AppIcon.appiconset
+```
+
 ## Test
 
 ```sh
 cd Packages/LumixKit && swift test
 python3 scripts/check-localization.py
+```
+
+`scripts/check-window-layout.swift` opens the setup guide and every settings tab of a built app in
+English, Korean and Japanese, and reports text cut short with an ellipsis, content that scrolls,
+and windows taller than the screen. Quit LUMIX Webcam first. The check brings the app's windows to
+the front for about ten seconds per language, and the terminal needs the Accessibility and Screen
+Recording permissions. `--screenshots <directory>` also saves each window as a screenshot.
+
+```sh
+swift scripts/check-window-layout.swift "build/DerivedData/Build/Products/Release/LUMIX Webcam.app"
 ```
 
 `lumix-sink-probe` checks the camera extension without a camera. Quit LUMIX Webcam first, because
@@ -91,7 +125,7 @@ seconds. Choose LUMIX Webcam in a camera app to see it.
 
 | Path | Contents |
 | --- | --- |
-| `App/` | The menu bar app: settings, setup guide, extension installer |
+| `App/` | The menu bar app: settings, setup guide, extension installer, app icon |
 | `CameraExtension/` | The Core Media I/O camera extension |
 | `Packages/LumixKit/Sources/LumixProtocol/` | PTP containers and the Panasonic live-view messages |
 | `Packages/LumixKit/Sources/LumixSession/` | The camera session, the link state machine and reconnection |
@@ -100,6 +134,9 @@ seconds. Choose LUMIX Webcam in a camera app to see it.
 | `Packages/LumixKit/Sources/LumixVirtualCamera/` | The frame and status channels between the app and the extension |
 | `Packages/LumixKit/Tools/SinkProbe/` | `lumix-sink-probe` |
 | `scripts/check-localization.py` | The localization check |
+| `scripts/check-window-layout.swift` | The window layout check |
+| `scripts/make-app-icon.swift` | The app icon drawing |
+| `.github/images/` | The screenshots in this file |
 
 ## Localization
 
