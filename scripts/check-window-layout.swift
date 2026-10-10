@@ -115,6 +115,18 @@ func waitForWindow(of app: AXUIElement, titled wanted: String, timeout: TimeInte
     return nil
 }
 
+func waitForMenuBarItem(of app: AXUIElement, timeout: TimeInterval) -> AXUIElement? {
+    let deadline = Date(timeIntervalSinceNow: timeout)
+    while Date() < deadline {
+        if let extras = attribute(app, "AXExtrasMenuBar"), CFGetTypeID(extras) == AXUIElementGetTypeID(),
+           let item = children(extras as! AXUIElement).first {
+            return item
+        }
+        wait(0.2)
+    }
+    return nil
+}
+
 // MARK: - Strings
 
 /// The app's string table for one language, to find windows, menu items and tabs by their titles.
@@ -287,7 +299,21 @@ func run(language: String) {
     let app = AXUIElementCreateApplication(process.processIdentifier)
     AXUIElementSetMessagingTimeout(app, 1.5)
 
-    if let guide = waitForWindow(of: app, titled: localized("LUMIX Webcam Setup"), timeout: 15) {
+    guard waitForMenuBarItem(of: app, timeout: 15) != nil else {
+        findings.append("[\(language)] menu bar item not found")
+        return
+    }
+    // The guide opens by itself only while a setup step remains; otherwise open it from the menu.
+    var guide = waitForWindow(of: app, titled: localized("LUMIX Webcam Setup"), timeout: 3)
+    if guide == nil, let item = waitForMenuBarItem(of: app, timeout: 1) {
+        AXUIElementPerformAction(item, kAXPressAction as CFString)
+        wait(0.5)
+        if let entry = descendants(item, where: { role($0) == kAXMenuItemRole && title($0) == localized("Setup Guide…") }).first {
+            AXUIElementPerformAction(entry, kAXPressAction as CFString)
+        }
+        guide = waitForWindow(of: app, titled: localized("LUMIX Webcam Setup"), timeout: 5)
+    }
+    if let guide {
         wait(0.8)
         check(window: guide, pid: process.processIdentifier, name: "setup-guide", language: language,
               anchors: [localized("Set Up LUMIX Webcam")])
@@ -295,8 +321,7 @@ func run(language: String) {
         findings.append("[\(language)] setup guide did not open")
     }
 
-    guard let extras = attribute(app, "AXExtrasMenuBar"), CFGetTypeID(extras) == AXUIElementGetTypeID(),
-          let item = children(extras as! AXUIElement).first else {
+    guard let item = waitForMenuBarItem(of: app, timeout: 1) else {
         findings.append("[\(language)] menu bar item not found")
         return
     }
