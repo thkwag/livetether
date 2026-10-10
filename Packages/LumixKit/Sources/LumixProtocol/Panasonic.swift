@@ -32,6 +32,7 @@ public struct PTPRequest: Hashable, Sendable, CustomStringConvertible {
 
     public init(operation: PTPOperationCode, parameters: [UInt32] = [], dataPhase: PTPDataPhase, dataOut: Data? = nil) {
         precondition((dataPhase == .hostToDevice) == (dataOut != nil), "dataOut must accompany a host-to-device data phase")
+        precondition(parameters.count <= PTPCommand.maximumParameterCount, "a PTP request carries at most five parameters")
         self.operation = operation
         self.parameters = parameters
         self.dataPhase = dataPhase

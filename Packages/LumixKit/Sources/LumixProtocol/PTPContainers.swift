@@ -20,6 +20,13 @@ public struct PTPCommand: Hashable, Sendable {
         self.parameters = parameters
     }
 
+    /// Builds the command for a request; `PTPRequest` already guarantees at most five parameters.
+    public init(_ request: PTPRequest, transactionID: UInt32) {
+        self.operation = request.operation
+        self.transactionID = transactionID
+        self.parameters = request.parameters
+    }
+
     /// Decodes a command container; the length field must match the bytes received.
     public init(container: Data) throws(ProtocolError) {
         let maximumLength = Self.headerLength + 4 * Self.maximumParameterCount

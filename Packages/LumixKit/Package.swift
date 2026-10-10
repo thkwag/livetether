@@ -6,9 +6,13 @@ let package = Package(
     platforms: [.macOS("14.1")],
     products: [
         .library(name: "LumixProtocol", targets: ["LumixProtocol"]),
+        .library(name: "LumixSession", targets: ["LumixSession"]),
     ],
     targets: [
         .target(name: "LumixProtocol"),
-        .testTarget(name: "LumixProtocolTests", dependencies: ["LumixProtocol"]),
+        .target(name: "LumixSession", dependencies: ["LumixProtocol"]),
+        .target(name: "LumixTestSupport", path: "Tests/LumixTestSupport"),
+        .testTarget(name: "LumixProtocolTests", dependencies: ["LumixProtocol", "LumixTestSupport"]),
+        .testTarget(name: "LumixSessionTests", dependencies: ["LumixSession", "LumixProtocol", "LumixTestSupport"]),
     ]
 )

@@ -1,4 +1,5 @@
 import Foundation
+import LumixTestSupport
 import Testing
 @testable import LumixProtocol
 
