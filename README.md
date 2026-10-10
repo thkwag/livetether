@@ -77,6 +77,9 @@ The menu bar icon opens a menu with the camera status, Auto Framing, the setting
 If the camera is connected but LUMIX Webcam does not find it, look up the camera's product ID in
 System Information > USB and add it on the Advanced tab.
 
+If LUMIX Webcam does not appear as a camera in other apps, click Uninstall and then Install on the
+General tab, and allow the extension again in System Settings.
+
 To remove LUMIX Webcam, click Uninstall on the General tab, then delete the app.
 
 ## Build
