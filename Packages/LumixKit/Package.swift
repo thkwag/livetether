@@ -8,13 +8,16 @@ let package = Package(
         .library(name: "LumixProtocol", targets: ["LumixProtocol"]),
         .library(name: "LumixSession", targets: ["LumixSession"]),
         .library(name: "LumixImageCapture", targets: ["LumixImageCapture"]),
+        .library(name: "LumixVideo", targets: ["LumixVideo"]),
     ],
     targets: [
         .target(name: "LumixProtocol"),
         .target(name: "LumixSession", dependencies: ["LumixProtocol"]),
         .target(name: "LumixImageCapture", dependencies: ["LumixProtocol", "LumixSession"]),
+        .target(name: "LumixVideo"),
         .target(name: "LumixTestSupport", path: "Tests/LumixTestSupport"),
         .testTarget(name: "LumixProtocolTests", dependencies: ["LumixProtocol", "LumixTestSupport"]),
         .testTarget(name: "LumixSessionTests", dependencies: ["LumixSession", "LumixProtocol", "LumixTestSupport"]),
+        .testTarget(name: "LumixVideoTests", dependencies: ["LumixVideo", "LumixTestSupport"]),
     ]
 )
