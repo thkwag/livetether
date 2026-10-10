@@ -8,7 +8,7 @@ import LumixVirtualCamera
 /// the app and a camera, so the extension can be checked in any camera app without hardware.
 ///
 /// Usage: `lumix-sink-probe [seconds] [width] [height]` (defaults: 30 s, 1280 × 960). Quit the
-/// LUMIX Webcam app first; only one client can own the sink stream.
+/// LiveTether app first; only one client can own the sink stream.
 @main
 struct SinkProbe {
     static func main() async {
@@ -20,7 +20,7 @@ struct SinkProbe {
             try sink.connect()
         } catch {
             print("Cannot reach the camera extension's sink stream: \(error)")
-            print("Is the extension installed and activated? Is the LUMIX Webcam app quit?")
+            print("Is the extension installed and activated? Is the LiveTether app quit?")
             exit(1)
         }
         print("Sending a \(size) test pattern for \(seconds) s")

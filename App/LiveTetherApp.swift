@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 @main
-struct LumixWebcamApp: App {
+struct LiveTetherApp: App {
     @State private var model = AppModel()
 
     var body: some Scene {
@@ -16,7 +16,7 @@ struct LumixWebcamApp: App {
             SettingsView(model: model)
         }
 
-        Window("LUMIX Webcam Setup", id: SetupGuideView.windowID) {
+        Window("LiveTether Setup", id: SetupGuideView.windowID) {
             SetupGuideView(model: model)
         }
         .windowResizability(.contentSize)

@@ -1,4 +1,4 @@
-/* User-facing strings of the LUMIX Webcam app. The key is the English source text. */
+/* User-facing strings of the LiveTether app. The key is the English source text. */
 
 "the camera" = "the camera";
 "Waiting for a camera" = "Waiting for a camera";
@@ -15,13 +15,13 @@
 "Installed" = "Installed";
 "Restart your Mac to finish" = "Restart your Mac to finish installation";
 "Uninstalling" = "Uninstalling";
-"Move LUMIX Webcam to the Applications folder first" = "Move LUMIX Webcam to the Applications folder first";
+"Move LiveTether to the Applications folder first" = "Move LiveTether to the Applications folder first";
 "Failed: %@" = "Failed: %@";
-"LUMIX Webcam Setup" = "LUMIX Webcam Setup";
+"LiveTether Setup" = "LiveTether Setup";
 "Camera extension: %@" = "Camera extension: %@";
 "Settings…" = "Settings…";
 "Setup Guide…" = "Setup Guide…";
-"Quit LUMIX Webcam" = "Quit LUMIX Webcam";
+"Quit LiveTether" = "Quit LiveTether";
 "General" = "General";
 "Camera" = "Camera";
 "Advanced" = "Advanced";
@@ -49,16 +49,16 @@
 "Enter one or more hexadecimal product IDs, such as 2382." = "Enter at least one product ID in hexadecimal, such as 2382.";
 "Restore Default" = "Restore Default";
 "Apply" = "Apply";
-"Set Up LUMIX Webcam" = "Set Up LUMIX Webcam";
+"Set Up LiveTether" = "Set Up LiveTether";
 "Run from the Applications folder" = "Run from the Applications folder";
-"The camera extension can only be installed while LUMIX Webcam runs from the Applications folder." = "To install the camera extension, move LUMIX Webcam to the Applications folder and open it from there.";
+"The camera extension can only be installed while LiveTether runs from the Applications folder." = "To install the camera extension, move LiveTether to the Applications folder and open it from there.";
 "Install the camera extension" = "Install the camera extension";
-"After you click Install, allow LUMIX Webcam in System Settings > General > Login Items & Extensions > Camera Extensions." = "Click Install, then enable LUMIX Webcam in System Settings > General > Login Items & Extensions > Camera Extensions.";
+"After you click Install, allow LiveTether in System Settings > General > Login Items & Extensions > Camera Extensions." = "Click Install, then enable LiveTether in System Settings > General > Login Items & Extensions > Camera Extensions.";
 "Connect the camera" = "Connect the camera";
 "Set the camera's USB mode to PC (Tether) and connect it to this Mac with a USB cable. Avoid USB hubs and charge-only ports." = "Set the camera's USB mode to PC (Tether), then connect it directly to this Mac with a USB cable. Avoid USB hubs and charging-only ports.";
-"Choose LUMIX Webcam as the camera" = "Choose LUMIX Webcam as the camera";
-"In any app that uses a camera, such as FaceTime, Zoom, OBS or QuickTime Player, choose LUMIX Webcam." = "In FaceTime, Zoom, OBS, QuickTime Player or another app that uses a camera, select LUMIX Webcam as the camera.";
-"The earlier LUMIX Webcam Software is still installed. macOS 14.1 and later do not load it, and LUMIX Webcam replaces it." = "An older version of LUMIX Webcam Software is still installed. It does not work on macOS 14.1 or later. Use LUMIX Webcam instead.";
+"Choose LiveTether as the camera" = "Choose LiveTether as the camera";
+"In any app that uses a camera, such as FaceTime, Zoom, OBS or QuickTime Player, choose LiveTether." = "In FaceTime, Zoom, OBS, QuickTime Player or another app that uses a camera, select LiveTether as the camera.";
+"The earlier LUMIX Webcam Software is still installed. macOS 14.1 and later do not load it, and LiveTether replaces it." = "An older version of LUMIX Webcam Software is still installed. It does not work on macOS 14.1 or later. Use LiveTether instead.";
 "Done" = "Done";
 "Auto Framing" = "Auto Framing";
 "Keeps the people in front of the camera in the middle of the picture and follows them as they move, giving room on the side they look to. People are found on this Mac only; no picture is stored or sent." = "Keeps people centered in the frame as they move, with extra space in the direction they face. People are detected only on this Mac. No video is stored or sent elsewhere.";

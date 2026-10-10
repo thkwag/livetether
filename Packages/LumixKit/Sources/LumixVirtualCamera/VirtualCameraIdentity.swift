@@ -8,12 +8,12 @@ public enum VirtualCameraIdentity {
     public static let sourceStreamID = UUID(uuidString: "C573536A-1488-407C-B379-3F6992A544D6")!
     public static let sinkStreamID = UUID(uuidString: "5256F64F-D6B4-48E1-9853-E18C29D5C279")!
 
-    public static let deviceName = "LUMIX Webcam"
-    public static let modelName = "LUMIX Webcam"
+    public static let deviceName = "LiveTether"
+    public static let modelName = "LiveTether"
     /// The independent project that provides the virtual camera, not the camera maker.
-    public static let manufacturer = "LUMIX Webcam Project"
-    public static let sourceStreamName = "LUMIX Webcam Video"
-    public static let sinkStreamName = "LUMIX Webcam Input"
+    public static let manufacturer = "LiveTether Project"
+    public static let sourceStreamName = "LiveTether Video"
+    public static let sinkStreamName = "LiveTether Input"
 
     public static var deviceUID: String { deviceID.uuidString }
 

@@ -30,7 +30,7 @@ struct MenuContent: View {
             NSApp.activate()
         }
         Divider()
-        Button("Quit LUMIX Webcam") {
+        Button("Quit LiveTether") {
             NSApp.terminate(nil)
         }
     }

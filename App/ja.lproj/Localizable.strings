@@ -1,4 +1,4 @@
-/* User-facing strings of the LUMIX Webcam app. The key is the English source text. */
+/* User-facing strings of the LiveTether app. The key is the English source text. */
 
 "the camera" = "カメラ";
 "Waiting for a camera" = "カメラの接続待ち";
@@ -15,13 +15,13 @@
 "Installed" = "インストール済み";
 "Restart your Mac to finish" = "インストールを完了するにはMacを再起動してください";
 "Uninstalling" = "アンインストール中";
-"Move LUMIX Webcam to the Applications folder first" = "まずLUMIX Webcamをアプリケーションフォルダに移動してください";
+"Move LiveTether to the Applications folder first" = "まずLiveTetherをアプリケーションフォルダに移動してください";
 "Failed: %@" = "失敗：%@";
-"LUMIX Webcam Setup" = "LUMIX Webcamのセットアップ";
+"LiveTether Setup" = "LiveTetherのセットアップ";
 "Camera extension: %@" = "カメラ機能拡張：%@";
 "Settings…" = "設定…";
 "Setup Guide…" = "セットアップガイド…";
-"Quit LUMIX Webcam" = "LUMIX Webcamを終了";
+"Quit LiveTether" = "LiveTetherを終了";
 "General" = "一般";
 "Camera" = "カメラ";
 "Advanced" = "詳細";
@@ -49,16 +49,16 @@
 "Enter one or more hexadecimal product IDs, such as 2382." = "2382など、16進数の製品IDを1つ以上入力してください。";
 "Restore Default" = "デフォルトに戻す";
 "Apply" = "適用";
-"Set Up LUMIX Webcam" = "LUMIX Webcamのセットアップ";
+"Set Up LiveTether" = "LiveTetherのセットアップ";
 "Run from the Applications folder" = "アプリケーションフォルダから起動";
-"The camera extension can only be installed while LUMIX Webcam runs from the Applications folder." = "カメラ機能拡張をインストールするには、LUMIX Webcamをアプリケーションフォルダに移動し、そのフォルダから起動してください。";
+"The camera extension can only be installed while LiveTether runs from the Applications folder." = "カメラ機能拡張をインストールするには、LiveTetherをアプリケーションフォルダに移動し、そのフォルダから起動してください。";
 "Install the camera extension" = "カメラ機能拡張をインストール";
-"After you click Install, allow LUMIX Webcam in System Settings > General > Login Items & Extensions > Camera Extensions." = "「インストール」をクリックしたあと、システム設定 > 一般 > ログイン項目と機能拡張 > カメラ機能拡張でLUMIX Webcamをオンにしてください。";
+"After you click Install, allow LiveTether in System Settings > General > Login Items & Extensions > Camera Extensions." = "「インストール」をクリックしたあと、システム設定 > 一般 > ログイン項目と機能拡張 > カメラ機能拡張でLiveTetherをオンにしてください。";
 "Connect the camera" = "カメラを接続";
 "Set the camera's USB mode to PC (Tether) and connect it to this Mac with a USB cable. Avoid USB hubs and charge-only ports." = "カメラのUSBモードをPC（Tether）に設定し、USBケーブルでこのMacに直接接続してください。USBハブや充電専用ポートは使用しないでください。";
-"Choose LUMIX Webcam as the camera" = "使用するカメラにLUMIX Webcamを選択";
-"In any app that uses a camera, such as FaceTime, Zoom, OBS or QuickTime Player, choose LUMIX Webcam." = "FaceTime、Zoom、OBS、QuickTime Playerなどのアプリで、使用するカメラにLUMIX Webcamを選択してください。";
-"The earlier LUMIX Webcam Software is still installed. macOS 14.1 and later do not load it, and LUMIX Webcam replaces it." = "旧バージョンのLUMIX Webcam Softwareがまだインストールされています。macOS 14.1以降では動作しないため、代わりにLUMIX Webcamを使用してください。";
+"Choose LiveTether as the camera" = "使用するカメラにLiveTetherを選択";
+"In any app that uses a camera, such as FaceTime, Zoom, OBS or QuickTime Player, choose LiveTether." = "FaceTime、Zoom、OBS、QuickTime Playerなどのアプリで、使用するカメラにLiveTetherを選択してください。";
+"The earlier LUMIX Webcam Software is still installed. macOS 14.1 and later do not load it, and LiveTether replaces it." = "旧バージョンのLUMIX Webcam Softwareがまだインストールされています。macOS 14.1以降では動作しないため、代わりにLiveTetherを使用してください。";
 "Done" = "完了";
 "Auto Framing" = "自動フレーミング";
 "Keeps the people in front of the camera in the middle of the picture and follows them as they move, giving room on the side they look to. People are found on this Mac only; no picture is stored or sent." = "人物の動きに合わせて構図を調整し、画面の中央に収めます。顔を向けている方向には余白を残します。人物の検出はこのMac内でのみ行います。映像を保存したり、外部に送信したりすることはありません。";

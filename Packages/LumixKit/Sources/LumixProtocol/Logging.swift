@@ -1,6 +1,6 @@
 import os
 
-/// Unified-logging subsystem shared by every LUMIX Webcam process and module.
+/// Unified-logging subsystem shared by every LiveTether process and module.
 public enum LumixLog {
     public static let subsystem = "com.github.thkwag.lumixwebcam"
 

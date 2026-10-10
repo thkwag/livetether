@@ -1,5 +1,5 @@
 /* Standby frame the virtual camera shows while no camera picture is available. */
-"standby.appNotRunning.title" = "LUMIX Webcam이 실행 중이 아닙니다";
+"standby.appNotRunning.title" = "LiveTether가 실행 중이 아닙니다";
 "standby.appNotRunning.detail" = "카메라 영상을 보려면 앱을 실행하세요.";
 "standby.waitingForCamera.title" = "카메라를 연결하세요";
 "standby.waitingForCamera.detail" = "USB 모드를 PC(Tether)로 설정하고 USB 케이블로 카메라를 연결하세요.";

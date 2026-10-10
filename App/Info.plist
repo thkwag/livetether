@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>LUMIX Webcam</string>
+	<string>LiveTether</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -33,6 +33,6 @@
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>LUMIX Webcam needs camera access to send the LUMIX camera picture to its virtual camera.</string>
+	<string>LiveTether needs camera access to send the LUMIX camera picture to its virtual camera.</string>
 </dict>
 </plist>

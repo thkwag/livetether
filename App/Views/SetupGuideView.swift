@@ -11,17 +11,17 @@ struct SetupGuideView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            Text("Set Up LUMIX Webcam")
+            Text("Set Up LiveTether")
                 .font(.title2.weight(.semibold))
                 .fixedSize(horizontal: false, vertical: true)
 
             GuideStep(number: 1, title: "Run from the Applications folder", done: model.installer.isInApplicationsFolder) {
-                Text("The camera extension can only be installed while LUMIX Webcam runs from the Applications folder.")
+                Text("The camera extension can only be installed while LiveTether runs from the Applications folder.")
             }
 
             GuideStep(number: 2, title: "Install the camera extension", done: model.installer.state == .installed) {
                 Text(verbatim: StatusText.installer(model.installer.state))
-                Text("After you click Install, allow LUMIX Webcam in System Settings > General > Login Items & Extensions > Camera Extensions.")
+                Text("After you click Install, allow LiveTether in System Settings > General > Login Items & Extensions > Camera Extensions.")
                 HStack {
                     Button("Install") { model.installer.install() }
                         .disabled(model.installer.state == .installed || model.installer.state == .installing)
@@ -33,12 +33,12 @@ struct SetupGuideView: View {
                 Text("Set the camera's USB mode to PC (Tether) and connect it to this Mac with a USB cable. Avoid USB hubs and charge-only ports.")
             }
 
-            GuideStep(number: 4, title: "Choose LUMIX Webcam as the camera", done: model.clientsActive) {
-                Text("In any app that uses a camera, such as FaceTime, Zoom, OBS or QuickTime Player, choose LUMIX Webcam.")
+            GuideStep(number: 4, title: "Choose LiveTether as the camera", done: model.clientsActive) {
+                Text("In any app that uses a camera, such as FaceTime, Zoom, OBS or QuickTime Player, choose LiveTether.")
             }
 
             if model.legacyPluginInstalled {
-                Text("The earlier LUMIX Webcam Software is still installed. macOS 14.1 and later do not load it, and LUMIX Webcam replaces it.")
+                Text("The earlier LUMIX Webcam Software is still installed. macOS 14.1 and later do not load it, and LiveTether replaces it.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)

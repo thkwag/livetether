@@ -42,7 +42,7 @@ enum StatusText {
         case .uninstalling:
             return String(localized: "Uninstalling")
         case .outsideApplicationsFolder:
-            return String(localized: "Move LUMIX Webcam to the Applications folder first")
+            return String(localized: "Move LiveTether to the Applications folder first")
         case .failed(let reason):
             return String(localized: "Failed: \(reason)")
         }

@@ -1,4 +1,4 @@
-// Opens every window of the LUMIX Webcam app in each language and reports text cut short with an
+// Opens every window of the LiveTether app in each language and reports text cut short with an
 // ellipsis, content that scrolls, and windows taller than the screen.
 //
 // The app is started once per language with -AppleLanguages. The setup guide opens by itself while
@@ -9,12 +9,12 @@
 // a line ends in an ellipsis.
 //
 // The app's windows come to the front for about ten seconds per language. The terminal running
-// the check needs the Accessibility and Screen Recording permissions. Quit LUMIX Webcam first.
+// the check needs the Accessibility and Screen Recording permissions. Quit LiveTether first.
 //
 // With --screenshots, each window is also saved with its shadow, and the menu bar menu as well, as
 // <directory>/<language>-<window>.png.
 //
-// Usage: swift scripts/check-window-layout.swift <LUMIX Webcam.app> [--screenshots <directory>] [language ...]
+// Usage: swift scripts/check-window-layout.swift <LiveTether.app> [--screenshots <directory>] [language ...]
 // Exit status 0 means no window had a finding.
 
 import AppKit
@@ -297,7 +297,7 @@ func run(language: String) {
     func localized(_ key: String) -> String { table[key] ?? key }
 
     let process = Process()
-    process.executableURL = appURL.appendingPathComponent("Contents/MacOS/LUMIX Webcam")
+    process.executableURL = appURL.appendingPathComponent("Contents/MacOS/LiveTether")
     process.arguments = ["-AppleLanguages", "(\(language))"]
     do {
         try process.run()
@@ -317,19 +317,19 @@ func run(language: String) {
         return
     }
     // The guide opens by itself only while a setup step remains; otherwise open it from the menu.
-    var guide = waitForWindow(of: app, titled: localized("LUMIX Webcam Setup"), timeout: 3)
+    var guide = waitForWindow(of: app, titled: localized("LiveTether Setup"), timeout: 3)
     if guide == nil, let item = waitForMenuBarItem(of: app, timeout: 1) {
         AXUIElementPerformAction(item, kAXPressAction as CFString)
         wait(0.5)
         if let entry = descendants(item, where: { role($0) == kAXMenuItemRole && title($0) == localized("Setup Guide…") }).first {
             AXUIElementPerformAction(entry, kAXPressAction as CFString)
         }
-        guide = waitForWindow(of: app, titled: localized("LUMIX Webcam Setup"), timeout: 5)
+        guide = waitForWindow(of: app, titled: localized("LiveTether Setup"), timeout: 5)
     }
     if let guide {
         wait(0.8)
         check(window: guide, pid: process.processIdentifier, name: "setup-guide", language: language,
-              anchors: [localized("Set Up LUMIX Webcam")])
+              anchors: [localized("Set Up LiveTether")])
     } else {
         findings.append("[\(language)] setup guide did not open")
     }
@@ -386,8 +386,8 @@ func run(language: String) {
     }
 }
 
-guard FileManager.default.fileExists(atPath: appURL.appendingPathComponent("Contents/MacOS/LUMIX Webcam").path) else {
-    print("usage: swift scripts/check-window-layout.swift <LUMIX Webcam.app> [language ...]")
+guard FileManager.default.fileExists(atPath: appURL.appendingPathComponent("Contents/MacOS/LiveTether").path) else {
+    print("usage: swift scripts/check-window-layout.swift <LiveTether.app> [language ...]")
     exit(2)
 }
 guard AXIsProcessTrusted(), CGPreflightScreenCaptureAccess() else {

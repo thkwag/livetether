@@ -10,7 +10,7 @@ import LumixVirtualCamera
 /// Every frame goes through the same detector, framer and cropper the app uses. The tool prints
 /// how often people were found and how the crop moved, and counts frames in which a framed person
 /// fell outside the crop. Without --no-sink it also feeds the framed pictures to the camera
-/// extension in real time, so the result can be watched in any camera app (quit LUMIX Webcam first).
+/// extension in real time, so the result can be watched in any camera app (quit LiveTether first).
 ///
 /// With --write <file>, the framed pictures are also written to a movie file.
 ///

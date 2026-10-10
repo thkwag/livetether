@@ -1,0 +1,11 @@
+#!/bin/sh
+# Quits a running copy of the app so the installer can replace it.
+# A running app keeps feeding the camera extension from the old bundle until it quits.
+
+console_user=$(stat -f %Su /dev/console)
+if [ -n "$console_user" ] && [ "$console_user" != "root" ]; then
+    console_uid=$(id -u "$console_user")
+    launchctl asuser "$console_uid" sudo -u "$console_user" \
+        osascript -e 'tell application id "com.github.thkwag.lumixwebcam" to quit' >/dev/null 2>&1 || true
+fi
+exit 0

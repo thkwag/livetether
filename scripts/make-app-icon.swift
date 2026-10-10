@@ -1,4 +1,4 @@
-// Draws the LUMIX Webcam app icon and writes it as a macOS app icon set.
+// Draws the LiveTether app icon and writes it as a macOS app icon set.
 //
 // The icon is a camera lens on a dark body, lit by green and blue coating reflections, with the red
 // light a webcam shows while it is in use. It carries no logo or lettering.

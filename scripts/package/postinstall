@@ -1,0 +1,11 @@
+#!/bin/sh
+# Opens the installed app for the signed-in user, so the setup guide appears and the camera
+# extension can be installed from the Applications folder right away.
+
+console_user=$(stat -f %Su /dev/console)
+if [ -n "$console_user" ] && [ "$console_user" != "root" ]; then
+    console_uid=$(id -u "$console_user")
+    launchctl asuser "$console_uid" sudo -u "$console_user" \
+        open "$2/LiveTether.app" >/dev/null 2>&1 || true
+fi
+exit 0
