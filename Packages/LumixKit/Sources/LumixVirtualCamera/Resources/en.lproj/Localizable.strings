@@ -1,4 +1,4 @@
-/* Standby frame shown in video calls while no camera picture is available. */
+/* Standby frame the virtual camera shows while no camera picture is available. */
 "standby.appNotRunning.title" = "LUMIX Webcam is not running";
 "standby.appNotRunning.detail" = "Open the app to show the camera picture.";
 "standby.waitingForCamera.title" = "Connect a camera";

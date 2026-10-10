@@ -5,7 +5,7 @@ import IOKit.audio
 import LumixVideo
 import LumixVirtualCamera
 
-/// The virtual camera device: a source stream for video-call applications and a sink stream for the app.
+/// The virtual camera device: a source stream applications read and a sink stream the app writes pictures into.
 final class DeviceSource: NSObject, CMIOExtensionDeviceSource {
     private(set) var device: CMIOExtensionDevice!
     private var source: SourceStreamSource!

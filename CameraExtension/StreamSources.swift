@@ -4,7 +4,7 @@ import Foundation
 import LumixProtocol
 import LumixVirtualCamera
 
-/// The stream video-call applications read.
+/// The stream applications read the camera picture from.
 final class SourceStreamSource: NSObject, CMIOExtensionStreamSource {
     private(set) var stream: CMIOExtensionStream!
     private let streamFormats: [CMIOExtensionStreamFormat]

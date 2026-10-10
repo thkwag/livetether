@@ -28,6 +28,6 @@
 		<string>$(TeamIdentifierPrefix)$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	</dict>
 	<key>NSSystemExtensionUsageDescription</key>
-	<string>Provides the live view of a LUMIX camera as a camera for video-call apps.</string>
+	<string>Makes the live view of a LUMIX camera available as a webcam to apps on this Mac.</string>
 </dict>
 </plist>

@@ -106,7 +106,7 @@ public enum OutputPolicy {
     }
 }
 
-/// The standby texts shown in video calls while no camera picture is available, from the
+/// The standby texts the virtual camera shows while no camera picture is available, from the
 /// module's `Localizable.strings` in each supported language.
 public enum StandbyCopy {
     public static func message(for indicator: LinkIndicator, language: StandbyLanguage) -> StandbyMessage {
