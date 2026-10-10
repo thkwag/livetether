@@ -28,6 +28,6 @@
 		<string>$(TeamIdentifierPrefix)$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	</dict>
 	<key>NSSystemExtensionUsageDescription</key>
-	<string>LUMIX 카메라의 라이브뷰를 영상 회의 앱에서 카메라로 쓸 수 있게 합니다.</string>
+	<string>Provides the live view of a LUMIX camera as a camera for video-call apps.</string>
 </dict>
 </plist>

@@ -51,10 +51,10 @@ public enum FrameResult: Sendable, Equatable {
 
 /// Runs the Panasonic live-view command sequence over one transport.
 ///
-/// Every transaction gets the next transaction ID, starting at 1 after each session open (D5).
-/// A control command answered Device Busy is retried after a delay up to the policy's limit (D14);
+/// Every transaction gets the next transaction ID, starting at 1 after each session open.
+/// A control command answered Device Busy is retried after a delay up to the policy's limit;
 /// a frame request answered Device Busy is reported as `.busy`. A transaction that times out is
-/// sent once more after the session is closed and reopened and the live-view state restored (D15);
+/// sent once more after the session is closed and reopened and the live-view state restored;
 /// a second time-out is reported to the caller.
 public actor CameraSession {
     private enum Kind {

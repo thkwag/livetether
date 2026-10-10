@@ -14,7 +14,8 @@ public enum DiscoveryEvent: Sendable {
     case disappeared(CameraID)
 }
 
-/// Decides which attached devices are LUMIX cameras the link should use.
+/// Decides which attached devices are LUMIX cameras the link should use: USB devices with Panasonic's
+/// vendor ID that accept PTP commands and whose product ID is in the configurable allowlist.
 public struct CameraFilter: Sendable, Equatable {
     public static let panasonicVendorID = 0x04DA
     public static let defaultProductIDs: Set<Int> = [0x2382]

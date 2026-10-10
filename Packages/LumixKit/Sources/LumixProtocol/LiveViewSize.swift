@@ -8,7 +8,7 @@ public struct LiveViewSize: Hashable, Sendable, Codable, CustomStringConvertible
 
     public var width: UInt16
     public var height: UInt16
-    /// A field whose meaning is unknown; it is echoed back to the camera unchanged.
+    /// A field whose meaning has not been established; it is echoed back to the camera unchanged.
     public var opaqueValue: UInt16
     public var framesPerSecond: UInt16
 

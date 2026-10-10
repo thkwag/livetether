@@ -21,6 +21,8 @@ final class OutputGenerator: @unchecked Sendable {
 
     private var linkObservation: DarwinObservation?
     private var statusWord = StatusWord(encoded: 0)
+    /// The language of the last fresh status; while the app is not running the standby keeps it.
+    private var language = StandbyLanguage(preferredLanguages: Locale.preferredLanguages)
     private var timer: DispatchSourceTimer?
     private var sourceClients = 0
     private var activeFormatIndex = VirtualCameraFormats.defaultIndex
@@ -37,14 +39,21 @@ final class OutputGenerator: @unchecked Sendable {
         sourceActive?.publish(0)
         queue.async { [self] in
             guard let linkStatus else { return }
-            statusWord = StatusWord(encoded: linkStatus.currentValue())
+            update(StatusWord(encoded: linkStatus.currentValue()))
             do {
                 linkObservation = try linkStatus.observe(on: queue) { [weak self] value in
-                    self?.statusWord = StatusWord(encoded: value)
+                    self?.update(StatusWord(encoded: value))
                 }
             } catch {
                 log.error("Observing the link status failed: \(String(describing: error), privacy: .public)")
             }
+        }
+    }
+
+    private func update(_ word: StatusWord) {
+        statusWord = word
+        if word.isFresh(at: Date()) {
+            language = word.language
         }
     }
 
@@ -87,7 +96,8 @@ final class OutputGenerator: @unchecked Sendable {
         let now = Self.hostSeconds()
         let decision = OutputPolicy.decide(
             lastFrameAge: latest.map { now - $0.receivedAt },
-            indicator: statusWord.effectiveIndicator(at: Date())
+            indicator: statusWord.effectiveIndicator(at: Date()),
+            language: language
         )
         do {
             let frame: CVPixelBuffer

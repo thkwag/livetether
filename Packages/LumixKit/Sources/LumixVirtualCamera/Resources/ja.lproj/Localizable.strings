@@ -1,0 +1,11 @@
+/* Standby frame shown in video calls while no camera picture is available. */
+"standby.appNotRunning.title" = "LUMIX Webcam アプリが起動していません";
+"standby.appNotRunning.detail" = "アプリを起動するとカメラの映像が表示されます。";
+"standby.waitingForCamera.title" = "カメラを接続してください";
+"standby.waitingForCamera.detail" = "カメラのUSBモードをPC(Tether)に設定し、USBケーブルで接続してください。";
+"standby.connecting.title" = "カメラに接続しています…";
+"standby.cameraUnavailable.title" = "カメラに接続できません";
+"standby.cameraUnavailable.detail" = "LUMIX Tether など、カメラを使用している他のアプリを終了してください。";
+"standby.preparing.title" = "カメラの映像を準備しています…";
+"standby.communicationError.title" = "カメラとの通信が途切れました";
+"standby.communicationError.detail" = "まもなく再接続します。";

@@ -75,7 +75,8 @@ public enum LinkEffect: Equatable, Sendable {
     case scheduleRetry(generation: UInt64)
 }
 
-/// The connection lifecycle as a pure transition function.
+/// The connection lifecycle as a pure transition function: camera events, session results, client
+/// activity and retry timers in; the next state and the work to perform out.
 public enum LinkReducer {
     public static func reduce(_ state: inout LinkState, _ event: LinkEvent) -> [LinkEffect] {
         switch event {

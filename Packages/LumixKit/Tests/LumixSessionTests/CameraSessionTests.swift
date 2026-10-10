@@ -20,7 +20,7 @@ struct CameraSessionTests {
         ])
     }
 
-    @Test("An already-open vendor session counts as opened (D7)")
+    @Test("An already-open vendor session counts as opened")
     func sessionAlreadyOpenIsAccepted() async throws {
         camera.inject([.response(.sessionAlreadyOpen)], for: PanasonicOperation.openSession)
         try await makeSession().open()
@@ -74,7 +74,7 @@ struct CameraSessionTests {
         await #expect(throws: SessionError.noUsableLiveViewSize) { try await session.configureLiveView(preferring: nil) }
     }
 
-    @Test("A busy control command is retried three times after 100 ms each (D14)")
+    @Test("A busy control command is retried three times after 100 ms each")
     func busyControlRetries() async throws {
         let sleeps = SleepRecorder()
         let session = makeSession(sleeps: sleeps)
@@ -116,7 +116,7 @@ struct CameraSessionTests {
         #expect(jpeg.extraction == .tagged)
     }
 
-    @Test("A timed-out frame request reopens the session, restores live view, and is sent once more (D15)")
+    @Test("A timed-out frame request reopens the session, restores live view, and is sent once more")
     func frameTimeoutReopens() async throws {
         let session = makeSession()
         try await session.open()

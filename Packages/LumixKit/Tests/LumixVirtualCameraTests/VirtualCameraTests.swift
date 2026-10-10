@@ -8,30 +8,41 @@ import Testing
 
 @Suite("Status word")
 struct StatusWordTests {
-    @Test("Every indicator and time survive encoding")
+    @Test("Every indicator, language and time survive encoding")
     func roundTrip() {
         forEachSeed { seed, generator in
             let indicator = LinkIndicator.allCases.randomElement(using: &generator)!
+            let language = StandbyLanguage.allCases.randomElement(using: &generator)!
             let time = Date(timeIntervalSince1970: TimeInterval(UInt32.random(in: 0...UInt32.max, using: &generator)))
-            let word = StatusWord(indicator: indicator, publishedAt: time)
+            let word = StatusWord(indicator: indicator, language: language, publishedAt: time)
             #expect(StatusWord(encoded: word.encoded) == word, "seed \(seed)")
             #expect(word.encoded & 0xFF == UInt64(indicator.rawValue), "seed \(seed)")
+            #expect((word.encoded >> 8) & 0xFF == UInt64(language.rawValue), "seed \(seed)")
         }
     }
 
     @Test("A status older than six seconds means the app is not running")
     func staleness() {
         let published = Date(timeIntervalSince1970: 1_800_000_000)
-        let word = StatusWord(indicator: .streaming, publishedAt: published)
+        let word = StatusWord(indicator: .streaming, language: .korean, publishedAt: published)
         #expect(word.effectiveIndicator(at: published.addingTimeInterval(6)) == .streaming)
         #expect(word.effectiveIndicator(at: published.addingTimeInterval(6.5)) == .appNotRunning)
         #expect(word.effectiveIndicator(at: published.addingTimeInterval(-10)) == .appNotRunning)
         #expect(StatusWord(encoded: 0).effectiveIndicator(at: Date()) == .appNotRunning)
     }
 
-    @Test("An unknown indicator value decodes as the app not running")
-    func unknownIndicator() {
+    @Test("Unknown indicator and language values decode as the app not running and English")
+    func unknownValues() {
         #expect(StatusWord(encoded: 0xFE).indicator == .appNotRunning)
+        #expect(StatusWord(encoded: 0xFE00).language == .english)
+    }
+
+    @Test("The first supported preferred language wins; anything else is English")
+    func languageResolution() {
+        #expect(StandbyLanguage(preferredLanguages: ["ko-KR", "en-US"]) == .korean)
+        #expect(StandbyLanguage(preferredLanguages: ["fr-FR", "ja-JP"]) == .japanese)
+        #expect(StandbyLanguage(preferredLanguages: ["fr-FR"]) == .english)
+        #expect(StandbyLanguage(preferredLanguages: []) == .english)
     }
 }
 
@@ -39,20 +50,36 @@ struct StatusWordTests {
 struct OutputPolicyTests {
     @Test("A picture up to one second old is shown; otherwise the standby for the indicator")
     func decisions() {
-        #expect(OutputPolicy.decide(lastFrameAge: 0, indicator: .streaming) == .cameraFrame)
-        #expect(OutputPolicy.decide(lastFrameAge: 1, indicator: .streaming) == .cameraFrame)
-        #expect(OutputPolicy.decide(lastFrameAge: 1.01, indicator: .streaming) == .standby(StandbyCopy.message(for: .streaming)))
-        #expect(OutputPolicy.decide(lastFrameAge: nil, indicator: .waitingForCamera) == .standby(StandbyCopy.message(for: .waitingForCamera)))
-        #expect(OutputPolicy.decide(lastFrameAge: -1, indicator: .connecting) == .standby(StandbyCopy.message(for: .connecting)))
+        let language = StandbyLanguage.english
+        #expect(OutputPolicy.decide(lastFrameAge: 0, indicator: .streaming, language: language) == .cameraFrame)
+        #expect(OutputPolicy.decide(lastFrameAge: 1, indicator: .streaming, language: language) == .cameraFrame)
+        #expect(OutputPolicy.decide(lastFrameAge: 1.01, indicator: .streaming, language: language) == .standby(StandbyCopy.message(for: .streaming, language: language)))
+        #expect(OutputPolicy.decide(lastFrameAge: nil, indicator: .waitingForCamera, language: language) == .standby(StandbyCopy.message(for: .waitingForCamera, language: language)))
+        #expect(OutputPolicy.decide(lastFrameAge: -1, indicator: .connecting, language: language) == .standby(StandbyCopy.message(for: .connecting, language: language)))
     }
 
-    @Test("Every indicator has a standby title, and the ones a person can act on say what to do")
-    func copyCoverage() {
-        for indicator in LinkIndicator.allCases {
-            #expect(!StandbyCopy.message(for: indicator).title.isEmpty, "\(indicator)")
+    @Test("Every standby key is translated in every language, and the translations are not English")
+    func translationsComplete() {
+        for key in StandbyCopy.allKeys {
+            let english = StandbyCopy.translation(key, language: .english)
+            #expect(english != nil, "English lacks \(key)")
+            for language in [StandbyLanguage.korean, .japanese] {
+                let translated = StandbyCopy.translation(key, language: language)
+                #expect(translated != nil, "\(language) lacks \(key)")
+                #expect(translated != english, "\(language) repeats the English text of \(key)")
+            }
         }
-        for indicator in [LinkIndicator.appNotRunning, .waitingForCamera, .cameraUnavailable] {
-            #expect(StandbyCopy.message(for: indicator).detail != nil, "\(indicator)")
+    }
+
+    @Test("Standby messages come from the requested language, and the actionable ones say what to do")
+    func messagesFollowLanguage() {
+        #expect(StandbyCopy.message(for: .waitingForCamera, language: .english).title == "Connect a camera")
+        #expect(StandbyCopy.message(for: .waitingForCamera, language: .korean).title == "카메라를 연결해 주세요")
+        #expect(StandbyCopy.message(for: .waitingForCamera, language: .japanese).title == "カメラを接続してください")
+        for language in StandbyLanguage.allCases {
+            for indicator in [LinkIndicator.appNotRunning, .waitingForCamera, .cameraUnavailable] {
+                #expect(StandbyCopy.message(for: indicator, language: language).detail != nil, "\(indicator) \(language)")
+            }
         }
     }
 }

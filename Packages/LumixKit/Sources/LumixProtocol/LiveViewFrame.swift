@@ -31,7 +31,7 @@ public struct LiveViewJPEG: Hashable, Sendable {
 ///
 /// With start offset and size records, the image is
 /// `block[offset ..< offset + min(count − offset, size − 12)]`. Public implementations disagree on the
-/// block layout, so every step that does not yield a well-formed JPEG falls back:
+/// block layout and the camera has not confirmed either, so every step that does not yield a well-formed JPEG falls back:
 /// a tagged start whose slice lacks an end-of-image marker is extended to the first marker after it,
 /// and a block without usable records is scanned for the first start-of-image marker and the first
 /// end-of-image marker after it, as libgphoto2 does.

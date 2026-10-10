@@ -4,7 +4,7 @@ options:
   deploymentTarget:
     macOS: "14.1"
   createIntermediateGroups: true
-  developmentLanguage: ko
+  developmentLanguage: en
 settings:
   base:
     DEVELOPMENT_TEAM: C5FPSTH375
