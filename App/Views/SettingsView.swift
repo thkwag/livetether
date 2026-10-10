@@ -2,7 +2,8 @@ import LumixProtocol
 import LumixSession
 import SwiftUI
 
-/// The settings window.
+/// The settings window. Every tab is laid out in plain stacks rather than a scrolling form, so the
+/// window always grows to its content: nothing scrolls and no text is cut short.
 struct SettingsView: View {
     let model: AppModel
 
@@ -25,11 +26,13 @@ struct GeneralSettings: View {
     let model: AppModel
 
     var body: some View {
-        Form {
-            Section("Camera Extension") {
+        SettingsPane {
+            SettingsGroup("Camera Extension") {
                 LabeledContent("Status") {
                     Text(verbatim: StatusText.installer(model.installer.state))
+                        .foregroundStyle(.secondary)
                 }
+                Divider()
                 HStack {
                     Button("Install") { model.installer.install() }
                         .disabled(model.installer.state == .installed || model.installer.state == .installing)
@@ -40,22 +43,28 @@ struct GeneralSettings: View {
                     }
                 }
             }
-            Section("Startup") {
-                Toggle("Open at login", isOn: Binding(
-                    get: { model.loginItem.isEnabled },
-                    set: { model.loginItem.setEnabled($0) }
-                ))
+            SettingsGroup("Startup") {
+                LabeledContent("Open at login") {
+                    Toggle("Open at login", isOn: Binding(
+                        get: { model.loginItem.isEnabled },
+                        set: { model.loginItem.setEnabled($0) }
+                    ))
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+                }
                 if let error = model.loginItem.lastError {
-                    Text(verbatim: error).foregroundStyle(.red)
+                    Text(verbatim: error)
+                        .foregroundStyle(.red)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             if model.legacyPluginInstalled {
-                Section("Earlier Software") {
+                SettingsGroup("Earlier Software") {
                     Text("The earlier LUMIX Webcam Software is installed as a DAL plug-in. macOS 14.1 and later do not load it, so it is not used. You can remove it from /Library/CoreMediaIO/Plug-Ins/DAL.")
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
-        .formStyle(.grouped)
     }
 }
 
@@ -69,38 +78,46 @@ struct CameraSettings: View {
 
     var body: some View {
         let status = model.link.status
-        Form {
-            Section {
+        SettingsPane {
+            SettingsGroup {
                 LabeledContent("Camera") {
                     Text(verbatim: status.cameraName ?? String(localized: "Not connected"))
+                        .foregroundStyle(.secondary)
                 }
-                Picker("Live view size", selection: Binding(
-                    get: { model.preferredSizeForCurrentCamera },
-                    set: { model.selectLiveViewSize($0) }
-                )) {
-                    Text("Automatic").tag(LiveViewSize?.none)
-                    ForEach(offeredSizes, id: \.self) { size in
-                        Text(verbatim: StatusText.size(size)).tag(Optional(size))
+                Divider()
+                LabeledContent("Live view size") {
+                    Picker("Live view size", selection: Binding(
+                        get: { model.preferredSizeForCurrentCamera },
+                        set: { model.selectLiveViewSize($0) }
+                    )) {
+                        Text("Automatic").tag(LiveViewSize?.none)
+                        ForEach(offeredSizes, id: \.self) { size in
+                            Text(verbatim: StatusText.size(size)).tag(Optional(size))
+                        }
                     }
+                    .labelsHidden()
+                    .fixedSize()
+                    .disabled(status.cameraName == nil || offeredSizes.isEmpty)
                 }
-                .disabled(status.cameraName == nil || offeredSizes.isEmpty)
-                Text("Automatic uses the widest size the camera offers at 30 fps. The list appears while the camera streams.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                SettingsNote("Automatic uses the widest size the camera offers at 30 fps. The list appears while the camera streams.")
             }
-            Section("Live View") {
+            SettingsGroup("Live View") {
                 LabeledContent("Current size") {
                     Text(verbatim: status.liveView.map { StatusText.size($0.current) } ?? String(localized: "Not available"))
+                        .foregroundStyle(.secondary)
                 }
+                Divider()
                 LabeledContent("Frames received") {
                     Text(status.statistics.frames, format: .number)
+                        .foregroundStyle(.secondary)
                 }
+                Divider()
                 LabeledContent("Busy replies") {
                     Text(status.statistics.busyReplies, format: .number)
+                        .foregroundStyle(.secondary)
                 }
             }
         }
-        .formStyle(.grouped)
     }
 }
 
@@ -111,17 +128,23 @@ struct AdvancedSettings: View {
     @State private var showsInvalidInput = false
 
     var body: some View {
-        Form {
-            Section("USB Product IDs") {
-                TextField("Product IDs", text: $productIDText)
-                Text("Only Panasonic USB devices (vendor ID 04DA) with these product IDs are used. Enter hexadecimal IDs separated by commas.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+        SettingsPane {
+            SettingsGroup("USB Product IDs") {
+                LabeledContent("Product IDs") {
+                    TextField("Product IDs", text: $productIDText)
+                        .labelsHidden()
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: 240)
+                }
+                SettingsNote("Only Panasonic USB devices (vendor ID 04DA) with these product IDs are used. Enter hexadecimal IDs separated by commas.")
                 if showsInvalidInput {
                     Text("Enter one or more hexadecimal product IDs, such as 2382.")
                         .foregroundStyle(.red)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
+                Divider()
                 HStack {
+                    Spacer()
                     Button("Restore Default") {
                         productIDText = CameraFilter.formatProductIDs(CameraFilter.defaultProductIDs)
                         apply()
@@ -131,7 +154,6 @@ struct AdvancedSettings: View {
                 }
             }
         }
-        .formStyle(.grouped)
         .onAppear { productIDText = CameraFilter.formatProductIDs(model.settings.productIDs) }
     }
 
@@ -143,5 +165,79 @@ struct AdvancedSettings: View {
         showsInvalidInput = false
         model.applyProductIDs(ids)
         productIDText = CameraFilter.formatProductIDs(ids)
+    }
+}
+
+/// The content of one settings tab: its groups stacked at their natural height.
+struct SettingsPane<Content: View>: View {
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            content
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .labeledContentStyle(SettingsRowStyle())
+        .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+/// A titled group of rows on a rounded background, as in a grouped form.
+struct SettingsGroup<Content: View>: View {
+    let title: LocalizedStringKey?
+    let content: Content
+
+    init(_ title: LocalizedStringKey? = nil, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let title {
+                Text(title)
+                    .font(.headline)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.leading, 4)
+            }
+            VStack(alignment: .leading, spacing: 10) {
+                content
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.quinary, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        }
+    }
+}
+
+/// Secondary text under a row; it wraps instead of being cut short.
+struct SettingsNote: View {
+    let text: LocalizedStringKey
+
+    init(_ text: LocalizedStringKey) {
+        self.text = text
+    }
+
+    var body: some View {
+        Text(text)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+/// A settings row: the label on the leading edge and the value or control on the trailing edge.
+/// Both sides wrap onto more lines rather than being cut short.
+struct SettingsRowStyle: LabeledContentStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+            configuration.label
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 12)
+            configuration.content
+                .multilineTextAlignment(.trailing)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 }

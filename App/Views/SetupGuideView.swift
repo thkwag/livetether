@@ -2,6 +2,7 @@ import LumixSession
 import SwiftUI
 
 /// The setup guide: the steps from installing the extension to choosing the camera in an app.
+/// Every text takes its full height, so the window grows to fit it instead of cutting it short.
 struct SetupGuideView: View {
     static let windowID = "setup-guide"
 
@@ -12,6 +13,7 @@ struct SetupGuideView: View {
         VStack(alignment: .leading, spacing: 18) {
             Text("Set Up LUMIX Webcam")
                 .font(.title2.weight(.semibold))
+                .fixedSize(horizontal: false, vertical: true)
 
             GuideStep(number: 1, title: "Run from the Applications folder", done: model.installer.isInApplicationsFolder) {
                 Text("The camera extension can only be installed while LUMIX Webcam runs from the Applications folder.")
@@ -39,6 +41,7 @@ struct SetupGuideView: View {
                 Text("The earlier LUMIX Webcam Software is still installed. macOS 14.1 and later do not load it, and LUMIX Webcam replaces it.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             HStack {
@@ -52,6 +55,7 @@ struct SetupGuideView: View {
         }
         .padding(24)
         .frame(width: 540)
+        .fixedSize(horizontal: false, vertical: true)
     }
 }
 
@@ -68,7 +72,9 @@ struct GuideStep<Content: View>: View {
                 .font(.title2)
                 .foregroundStyle(done ? Color.green : Color.secondary)
             VStack(alignment: .leading, spacing: 6) {
-                Text(title).font(.headline)
+                Text(title)
+                    .font(.headline)
+                    .fixedSize(horizontal: false, vertical: true)
                 content
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)

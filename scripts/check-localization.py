@@ -26,9 +26,10 @@ TABLES = [
 
 ENTRY = re.compile(r'^\s*"((?:[^"\\]|\\.)*)"\s*=\s*"((?:[^"\\]|\\.)*)"\s*;\s*$')
 FORMAT_SPECIFIER = re.compile(r"%(?:\d+\$)?(?:@|lld|ld|d|lf|f|s)")
-# SwiftUI initializers that take a LocalizedStringKey, `String(localized:)`, and `title:` arguments.
+# SwiftUI initializers and the app's own views that take a LocalizedStringKey, `String(localized:)`,
+# and `title:` arguments.
 LOCALIZED_LITERAL = re.compile(
-    r'(?:\b(?:Text|Button|Label|Toggle|Picker|Section|LabeledContent|TextField|SecureField|Window|Menu|Link)\(\s*'
+    r'(?:\b(?:Text|Button|Label|Toggle|Picker|Section|LabeledContent|TextField|SecureField|Window|Menu|Link|SettingsGroup|SettingsNote)\(\s*'
     r'|\bString\(localized:\s*|\btitle:\s*)"((?:[^"\\]|\\.)*)"'
 )
 
