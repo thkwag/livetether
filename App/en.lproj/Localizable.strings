@@ -62,3 +62,6 @@
 "Done" = "Done";
 "Auto Framing" = "Auto Framing";
 "Keeps the people in front of the camera in the middle of the picture and follows them as they move, giving room on the side they look to. People are found on this Mac only; no picture is stored or sent." = "Keeps the people in front of the camera in the middle of the picture and follows them as they move, giving room on the side they look to. People are found on this Mac only; no picture is stored or sent.";
+"Eye Contact" = "Eye Contact";
+"Moves the eyes so they look into the camera while the face looks straight ahead, and fades out as the head turns. The eyes are changed on this Mac only." = "Moves the eyes so they look into the camera while the face looks straight ahead, and fades out as the head turns. The eyes are changed on this Mac only.";
+"This build does not include the eye contact model." = "This build does not include the eye contact model.";

@@ -16,3 +16,7 @@ DerivedData/
 .build/
 .swiftpm/
 xcuserdata/
+
+# Eye contact model converted from weights that may not be redistributed
+/App/GazeModel/
+.venv-gaze/

@@ -12,6 +12,7 @@ final class AppSettings {
         static let preferredSizes = "preferredLiveViewSizes"
         static let setupGuideCompleted = "setupGuideCompleted"
         static let autoFramingEnabled = "autoFramingEnabled"
+        static let eyeContactEnabled = "eyeContactEnabled"
     }
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -31,6 +32,11 @@ final class AppSettings {
         didSet { defaults.set(autoFramingEnabled, forKey: Key.autoFramingEnabled) }
     }
 
+    /// Whether the eyes are redirected toward the camera while the face looks straight ahead.
+    var eyeContactEnabled: Bool {
+        didSet { defaults.set(eyeContactEnabled, forKey: Key.eyeContactEnabled) }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         let storedIDs = defaults.array(forKey: Key.productIDs) as? [Int]
@@ -38,6 +44,7 @@ final class AppSettings {
         preferredSizes = [:]
         setupGuideCompleted = defaults.bool(forKey: Key.setupGuideCompleted)
         autoFramingEnabled = defaults.bool(forKey: Key.autoFramingEnabled)
+        eyeContactEnabled = defaults.bool(forKey: Key.eyeContactEnabled)
         preferredSizes = loadPreferredSizes()
     }
 

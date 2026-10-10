@@ -78,11 +78,11 @@ public final class PersonDetector: Sendable {
         return CGPoint(x: sum.x / CGFloat(points.count), y: sum.y / CGFloat(points.count))
     }
 
-    /// A one-channel copy of the picture, `analysisWidth` wide, with the picture's aspect ratio.
-    static func grayscaleCopy(of picture: CVPixelBuffer) throws(VideoError) -> CVPixelBuffer {
+    /// A one-channel copy of the picture, `width` wide, with the picture's aspect ratio.
+    static func grayscaleCopy(of picture: CVPixelBuffer, width requestedWidth: Int = analysisWidth) throws(VideoError) -> CVPixelBuffer {
         try picture.requireBGRA()
         let size = picture.pixelSize
-        let width = min(analysisWidth, size.width)
+        let width = min(requestedWidth, size.width)
         let height = max(1, size.height * width / max(1, size.width))
         var small: CVPixelBuffer?
         let status = CVPixelBufferCreate(kCFAllocatorDefault, width, height, kCVPixelFormatType_OneComponent8, nil, &small)

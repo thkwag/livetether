@@ -1,10 +1,13 @@
 import AppKit
+import CoreML
 import Foundation
 import LumixImageCapture
 import LumixProtocol
 import LumixSession
+import LumixVideo
 import LumixVirtualCamera
 import Observation
+import os
 
 /// Wires camera discovery, the camera link, the frame pipeline and the extension's status channels.
 @MainActor
@@ -25,6 +28,7 @@ final class AppModel {
 
     @ObservationIgnored private let discovery: ImageCaptureDiscovery
     @ObservationIgnored private let pipeline: FramePipeline
+    @ObservationIgnored private var eyeContactCorrector: EyeContactCorrector?
     @ObservationIgnored private var sourceActivity: DarwinStateChannel?
     @ObservationIgnored private var sourceObservation: DarwinObservation?
     @ObservationIgnored private var linkStatus: DarwinStateChannel?
@@ -44,6 +48,8 @@ final class AppModel {
 
         link.preferredSize = { [weak settings] model in settings?.preferredSize(for: model) }
         pipeline.setAutoFraming(settings.autoFramingEnabled)
+        eyeContactCorrector = Self.loadEyeContactCorrector(log: log)
+        pipeline.setEyeContact(eyeContactCorrector, enabled: settings.eyeContactEnabled)
         discovery.onEvent = { [weak self] event in self?.link.handle(event) }
         observeSourceActivity()
         publishStatusPeriodically()
@@ -97,6 +103,25 @@ final class AppModel {
     func setAutoFraming(_ enabled: Bool) {
         settings.autoFramingEnabled = enabled
         pipeline.setAutoFraming(enabled)
+    }
+
+    /// Whether this build carries the gaze model the eye contact correction needs.
+    var eyeContactAvailable: Bool { eyeContactCorrector != nil }
+
+    func setEyeContact(_ enabled: Bool) {
+        settings.eyeContactEnabled = enabled
+        pipeline.setEyeContact(eyeContactCorrector, enabled: enabled)
+    }
+
+    /// The gaze model is built by scripts/gaze-model/convert.py and is absent from builds without it.
+    private static func loadEyeContactCorrector(log: Logger) -> EyeContactCorrector? {
+        guard let url = Bundle.main.url(forResource: "GazeWarp", withExtension: "mlmodelc") else { return nil }
+        do {
+            return EyeContactCorrector(model: try MLModel(contentsOf: url))
+        } catch {
+            log.error("Loading the gaze model failed: \(error.localizedDescription, privacy: .public)")
+            return nil
+        }
     }
 
     func applyProductIDs(_ ids: Set<Int>) {

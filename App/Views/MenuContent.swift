@@ -20,6 +20,12 @@ struct MenuContent: View {
             get: { model.settings.autoFramingEnabled },
             set: { model.setAutoFraming($0) }
         ))
+        if model.eyeContactAvailable {
+            Toggle("Eye Contact", isOn: Binding(
+                get: { model.settings.eyeContactEnabled },
+                set: { model.setEyeContact($0) }
+            ))
+        }
         Divider()
         Button("Settings…") {
             openSettings()

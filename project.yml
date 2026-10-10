@@ -41,6 +41,7 @@ targets:
         PRODUCT_NAME: LUMIX Webcam
         INFOPLIST_FILE: App/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        COREML_CODEGEN_LANGUAGE: None
         CODE_SIGN_ENTITLEMENTS: App/LumixWebcam.entitlements
         ENABLE_APP_SANDBOX: YES
   CameraExtension:

@@ -62,3 +62,6 @@
 "Done" = "完了";
 "Auto Framing" = "自動フレーミング";
 "Keeps the people in front of the camera in the middle of the picture and follows them as they move, giving room on the side they look to. People are found on this Mac only; no picture is stored or sent." = "カメラの前の人を画面の中央に保ち、動きに合わせて追いかけ、顔を向けている側に余白を取ります。人の検出はこのMac上でのみ行い、映像を保存したり送信したりしません。";
+"Eye Contact" = "アイコンタクト";
+"Moves the eyes so they look into the camera while the face looks straight ahead, and fades out as the head turns. The eyes are changed on this Mac only." = "顔が正面を向いているとき、目がカメラを見るように視線を補正し、顔を横に向けると徐々に補正を弱めます。目の補正はこのMac上でのみ行います。";
+"This build does not include the eye contact model." = "このビルドにはアイコンタクトのモデルが含まれていません。";

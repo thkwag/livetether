@@ -62,3 +62,6 @@
 "Done" = "완료";
 "Auto Framing" = "자동 구도";
 "Keeps the people in front of the camera in the middle of the picture and follows them as they move, giving room on the side they look to. People are found on this Mac only; no picture is stored or sent." = "카메라 앞 사람을 화면 가운데에 두고 움직임을 따라가며, 바라보는 쪽에 여유 공간을 둡니다. 사람은 이 Mac에서만 찾으며 영상을 저장하거나 보내지 않습니다.";
+"Eye Contact" = "시선 맞춤";
+"Moves the eyes so they look into the camera while the face looks straight ahead, and fades out as the head turns. The eyes are changed on this Mac only." = "얼굴이 정면을 볼 때 눈이 카메라를 보도록 눈동자를 옮기고, 고개를 돌리면 서서히 끕니다. 눈 보정은 이 Mac에서만 처리합니다.";
+"This build does not include the eye contact model." = "이 빌드에는 시선 맞춤 모델이 들어 있지 않습니다.";

@@ -13,6 +13,7 @@ let package = Package(
         .library(name: "LumixVirtualCamera", targets: ["LumixVirtualCamera"]),
         .executable(name: "lumix-sink-probe", targets: ["lumix-sink-probe"]),
         .executable(name: "lumix-framing-probe", targets: ["lumix-framing-probe"]),
+        .executable(name: "lumix-eye-contact-probe", targets: ["lumix-eye-contact-probe"]),
     ],
     targets: [
         .target(name: "LumixProtocol"),
@@ -22,10 +23,11 @@ let package = Package(
         .target(name: "LumixVirtualCamera", dependencies: ["LumixVideo", "LumixProtocol", "LumixSession"], resources: [.process("Resources")]),
         .executableTarget(name: "lumix-sink-probe", dependencies: ["LumixVideo", "LumixVirtualCamera"], path: "Tools/SinkProbe"),
         .executableTarget(name: "lumix-framing-probe", dependencies: ["LumixVideo", "LumixVirtualCamera"], path: "Tools/FramingProbe"),
+        .executableTarget(name: "lumix-eye-contact-probe", dependencies: ["LumixVideo"], path: "Tools/EyeContactProbe"),
         .target(name: "LumixTestSupport", path: "Tests/LumixTestSupport"),
         .testTarget(name: "LumixProtocolTests", dependencies: ["LumixProtocol", "LumixTestSupport"]),
         .testTarget(name: "LumixSessionTests", dependencies: ["LumixSession", "LumixProtocol", "LumixTestSupport"]),
-        .testTarget(name: "LumixVideoTests", dependencies: ["LumixVideo", "LumixTestSupport"]),
+        .testTarget(name: "LumixVideoTests", dependencies: ["LumixVideo", "LumixTestSupport"], resources: [.copy("Fixtures")]),
         .testTarget(name: "LumixVirtualCameraTests", dependencies: ["LumixVirtualCamera", "LumixVideo", "LumixSession", "LumixTestSupport"]),
     ]
 )

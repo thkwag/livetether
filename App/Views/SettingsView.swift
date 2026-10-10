@@ -112,6 +112,22 @@ struct CameraSettings: View {
                 }
                 SettingsNote("Keeps the people in front of the camera in the middle of the picture and follows them as they move, giving room on the side they look to. People are found on this Mac only; no picture is stored or sent.")
             }
+            SettingsGroup("Eye Contact") {
+                LabeledContent("Eye Contact") {
+                    Toggle("Eye Contact", isOn: Binding(
+                        get: { model.settings.eyeContactEnabled && model.eyeContactAvailable },
+                        set: { model.setEyeContact($0) }
+                    ))
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+                    .disabled(!model.eyeContactAvailable)
+                }
+                if model.eyeContactAvailable {
+                    SettingsNote("Moves the eyes so they look into the camera while the face looks straight ahead, and fades out as the head turns. The eyes are changed on this Mac only.")
+                } else {
+                    SettingsNote("This build does not include the eye contact model.")
+                }
+            }
             SettingsGroup("Live View") {
                 LabeledContent("Current size") {
                     Text(verbatim: status.liveView.map { StatusText.size($0.current) } ?? String(localized: "Not available"))
