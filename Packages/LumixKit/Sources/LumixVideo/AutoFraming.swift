@@ -85,13 +85,13 @@ public struct FramingParameters: Sendable, Equatable {
     /// Facing values this close to 0 count as looking at the camera.
     public var facingDeadZone = 0.2
     /// A new composition that differs from the current one by less than this share of the crop is ignored.
-    public var settleShare = 0.05
+    public var settleShare = 0.08
     /// Time constants of the approach to the composition, in seconds.
-    public var panTime = 0.7
-    public var zoomTime = 1.4
+    public var panTime = 1.5
+    public var zoomTime = 2.5
     /// Speed limits: crop widths per second for panning, relative size per second for zooming.
-    public var maximumPanSpeed = 0.6
-    public var maximumZoomSpeed = 0.5
+    public var maximumPanSpeed = 0.25
+    public var maximumZoomSpeed = 0.2
     /// The crop always moves at least this fast, as a share of its height per second, so the slow
     /// end of the approach finishes instead of trailing on for seconds.
     public var minimumSpeed = 0.04

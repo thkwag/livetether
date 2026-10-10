@@ -80,7 +80,7 @@ struct AutoFramingTests {
         try forEachSeed(150) { seed, generator in
             let subject = Self.randomPerson(&generator)
             var framer = AutoFramer(source: Self.source, output: Self.output)
-            let crop = try #require(Self.run(&framer, from: 0, seconds: 8) { _ in [subject] }.last)
+            let crop = try #require(Self.run(&framer, from: 0, seconds: 25) { _ in [subject] }.last)
             let body = Self.pixels(subject.body)
             #expect(Double(crop.x) <= body.minX + 1 && Double(crop.x + crop.width) >= body.maxX - 1, "seed \(seed): \(crop) misses \(body)")
             #expect(Double(crop.y) <= body.minY + 1, "seed \(seed): \(crop) cuts the head of \(body)")
@@ -118,7 +118,7 @@ struct AutoFramingTests {
         for facing in [-1.0, -0.6, 0.6, 1.0, 0.0, 0.1, -0.1] {
             let subject = Self.person(x: 0.4, y: 0.3, width: 0.2, height: 0.35, facing: facing)
             var framer = AutoFramer(source: Self.source, output: Self.output)
-            let crop = try #require(Self.run(&framer, from: 0, seconds: 8) { _ in [subject] }.last)
+            let crop = try #require(Self.run(&framer, from: 0, seconds: 25) { _ in [subject] }.last)
             let shift = Double(crop.x) + Double(crop.width) / 2 - subject.body.midX * Double(Self.source.width)
             if abs(facing) > FramingParameters().facingDeadZone {
                 #expect(shift * facing > 0, "facing \(facing): crop center moved by \(shift)")
@@ -132,10 +132,10 @@ struct AutoFramingTests {
     func holdThenRelease() throws {
         let subject = Self.person(x: 0.6, y: 0.2, width: 0.2, height: 0.35)
         var framer = AutoFramer(source: Self.source, output: Self.output)
-        let framed = try #require(Self.run(&framer, from: 0, seconds: 10) { _ in [subject] }.last)
-        let held = try #require(Self.run(&framer, from: 10, seconds: 1.0) { _ in [] }.last)
+        let framed = try #require(Self.run(&framer, from: 0, seconds: 25) { _ in [subject] }.last)
+        let held = try #require(Self.run(&framer, from: 25, seconds: 1.0) { _ in [] }.last)
         #expect(held == framed, "the composition was not held: \(framed) became \(held)")
-        let released = try #require(Self.run(&framer, from: 11, seconds: 10) { _ in [] }.last)
+        let released = try #require(Self.run(&framer, from: 26, seconds: 25) { _ in [] }.last)
         // The whole 4:3 picture in a 16:9 crop, with even margins at the sides.
         #expect(released.height == 960 && released.y == 0 && abs(2 * released.x + released.width - 1280) <= 2, "the full picture did not return: \(released)")
     }
@@ -145,8 +145,8 @@ struct AutoFramingTests {
         forEachSeed(60) { seed, generator in
             let still = Self.randomPerson(&generator)
             var framer = AutoFramer(source: Self.source, output: Self.output)
-            _ = Self.run(&framer, from: 0, seconds: 8) { _ in [still] }
-            let crops = Self.run(&framer, from: 8, seconds: 4) { _ in
+            _ = Self.run(&framer, from: 0, seconds: 25) { _ in [still] }
+            let crops = Self.run(&framer, from: 25, seconds: 4) { _ in
                 var moved = still
                 moved.body.x += Double.random(in: -0.008...0.008, using: &generator)
                 moved.body.y += Double.random(in: -0.008...0.008, using: &generator)
@@ -161,10 +161,10 @@ struct AutoFramingTests {
         let first = Self.person(x: 0.1, y: 0.3, width: 0.2, height: 0.35)
         let second = Self.person(x: 0.7, y: 0.3, width: 0.2, height: 0.35)
         var framer = AutoFramer(source: Self.source, output: Self.output)
-        let alone = try #require(Self.run(&framer, from: 0, seconds: 8) { _ in [first] }.last)
-        let early = try #require(Self.run(&framer, from: 8, seconds: 0.4) { _ in [first, second] }.last)
+        let alone = try #require(Self.run(&framer, from: 0, seconds: 25) { _ in [first] }.last)
+        let early = try #require(Self.run(&framer, from: 25, seconds: 0.4) { _ in [first, second] }.last)
         #expect(early == alone, "the newcomer moved the crop before the join delay: \(alone) became \(early)")
-        let together = try #require(Self.run(&framer, from: 8.4, seconds: 8) { _ in [first, second] }.last)
+        let together = try #require(Self.run(&framer, from: 25.4, seconds: 25) { _ in [first, second] }.last)
         let right = Self.pixels(second.body).maxX
         #expect(Double(together.x + together.width) >= right - 1, "the newcomer is not in \(together)")
     }
@@ -239,7 +239,7 @@ struct AutoFramingTests {
             var parameters = FramingParameters()
             parameters.shot = shot
             var framer = AutoFramer(source: Self.source, output: Self.output, parameters: parameters)
-            let crop = try #require(Self.run(&framer, from: 0, seconds: 10) { _ in [subject] }.last)
+            let crop = try #require(Self.run(&framer, from: 0, seconds: 25) { _ in [subject] }.last)
             let expected = face.height * Double(Self.source.height) * shot.faceHeights
             #expect(abs(Double(crop.height) - expected) <= 2, "\(shot): \(crop.height) rows, expected \(expected)")
             let faceX = face.midX * Double(Self.source.width), faceTop = face.minY * Double(Self.source.height)
@@ -256,7 +256,7 @@ struct AutoFramingTests {
         let face = NormalizedRect(x: 0.45, y: 0.78, width: 0.1, height: 0.15)
         let subject = FramingSubject(body: NormalizedRect(x: 0.4, y: 0.72, width: 0.2, height: 0.28), face: face)
         var framer = AutoFramer(source: Self.source, output: Self.output)
-        let crop = try #require(Self.run(&framer, from: 0, seconds: 10) { _ in [subject] }.last)
+        let crop = try #require(Self.run(&framer, from: 0, seconds: 25) { _ in [subject] }.last)
         // The whole picture stays in view instead of a zoomed crop that pushes the face to the bottom.
         #expect(crop.height == 960, "\(crop)")
     }
@@ -267,7 +267,7 @@ struct AutoFramingTests {
         let face = NormalizedRect(x: 0.35, y: 0.25, width: 0.3, height: 0.4)
         let subject = FramingSubject(body: NormalizedRect(x: 0.25, y: 0.2, width: 0.5, height: 0.8), face: face)
         var framer = AutoFramer(source: Self.source, output: Self.output)
-        let crop = try #require(Self.run(&framer, from: 0, seconds: 10) { _ in [subject] }.last)
+        let crop = try #require(Self.run(&framer, from: 0, seconds: 25) { _ in [subject] }.last)
         let hairTop = (face.minY - face.height * AutoFramer.hairShare) * Double(Self.source.height)
         #expect(Double(crop.y) <= hairTop + 1, "\(crop) cuts the hair above \(hairTop)")
     }
