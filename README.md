@@ -89,7 +89,7 @@ Building needs Xcode 26 (Swift 6.2) and [XcodeGen](https://github.com/yonaskolb/
 ```sh
 xcodegen generate
 xcodebuild -project LumixWebcam.xcodeproj -scheme LumixWebcam -configuration Release \
-  -derivedDataPath build/DerivedData -allowProvisioningUpdates build
+  -derivedDataPath build/DerivedData.noindex -allowProvisioningUpdates build
 ```
 
 A camera extension only loads when the app and the extension are signed, and the app can only
@@ -119,7 +119,7 @@ the front for about ten seconds per language, and the terminal needs the Accessi
 Recording permissions. `--screenshots <directory>` also saves each window as a screenshot.
 
 ```sh
-swift scripts/check-window-layout.swift "build/DerivedData/Build/Products/Release/LUMIX Webcam.app"
+swift scripts/check-window-layout.swift "build/DerivedData.noindex/Build/Products/Release/LUMIX Webcam.app"
 ```
 
 `lumix-sink-probe` checks the camera extension without a camera. Quit LUMIX Webcam first, because
