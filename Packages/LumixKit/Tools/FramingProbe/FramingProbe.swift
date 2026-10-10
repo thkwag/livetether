@@ -1,6 +1,7 @@
 import AVFoundation
 import CoreVideo
 import Foundation
+import LumixProbeSupport
 import LumixVideo
 import LumixVirtualCamera
 
@@ -11,7 +12,9 @@ import LumixVirtualCamera
 /// fell outside the crop. Without --no-sink it also feeds the framed pictures to the camera
 /// extension in real time, so the result can be watched in any camera app (quit LUMIX Webcam first).
 ///
-/// Usage: `lumix-framing-probe <video> [--size 1920x1080] [--no-sink]`
+/// With --write <file>, the framed pictures are also written to a movie file.
+///
+/// Usage: `lumix-framing-probe <video> [--size 1920x1080] [--no-sink] [--write <file>]`
 @main
 struct FramingProbe {
     static func main() async {
@@ -24,19 +27,25 @@ struct FramingProbe {
             if parts.count == 2 { output = PixelSize(width: parts[0], height: parts[1]) }
             arguments.removeSubrange(index...(index + 1))
         }
+        var writeURL: URL?
+        if let index = arguments.firstIndex(of: "--write"), index + 1 < arguments.count {
+            writeURL = URL(fileURLWithPath: arguments[index + 1])
+            arguments.removeSubrange(index...(index + 1))
+        }
         guard let path = arguments.first else {
             print("usage: lumix-framing-probe <video> [--size 1920x1080] [--no-sink]")
             exit(2)
         }
         do {
-            try await run(URL(fileURLWithPath: path), output: output, feedsSink: feedsSink)
+            try await run(URL(fileURLWithPath: path), output: output, feedsSink: feedsSink, writeURL: writeURL)
         } catch {
             print("Framing probe failed: \(error)")
             exit(1)
         }
     }
 
-    static func run(_ url: URL, output: PixelSize, feedsSink: Bool) async throws {
+    static func run(_ url: URL, output: PixelSize, feedsSink: Bool, writeURL: URL?) async throws {
+        let movie = try writeURL.map { try VideoFileWriter(url: $0, size: CGSize(width: output.width, height: output.height)) }
         let asset = AVURLAsset(url: url)
         guard let track = try await asset.loadTracks(withMediaType: .video).first else {
             print("The file has no video track")
@@ -101,6 +110,11 @@ struct FramingProbe {
                     outside += 1
                 }
             }
+            if let movie {
+                let framed = try pools.makeBuffer(size: output)
+                try FrameCropper.crop(picture, to: crop, into: framed)
+                movie.append(framed, at: time)
+            }
             if feedsSink {
                 let target = try pools.makeBuffer(size: output)
                 try FrameCropper.crop(picture, to: crop, into: target)
@@ -109,6 +123,7 @@ struct FramingProbe {
             }
         }
         sink.disconnect()
+        await movie?.finish()
         print("frames \(frames), detections \(detections) (\(detectionsWithPeople) found people)")
         if detections > 0 {
             print(String(format: "detection takes %.1f ms on average", detectionTime / Double(detections) * 1000))

@@ -64,4 +64,15 @@
 "Keeps the people in front of the camera in the middle of the picture and follows them as they move, giving room on the side they look to. People are found on this Mac only; no picture is stored or sent." = "Keeps the people in front of the camera in the middle of the picture and follows them as they move, giving room on the side they look to. People are found on this Mac only; no picture is stored or sent.";
 "Eye Contact" = "Eye Contact";
 "Moves the eyes so they look into the camera while the face looks straight ahead, and fades out as the head turns. The eyes are changed on this Mac only." = "Moves the eyes so they look into the camera while the face looks straight ahead, and fades out as the head turns. The eyes are changed on this Mac only.";
-"This build does not include the eye contact model." = "This build does not include the eye contact model.";
+"Model" = "Model";
+"Model Source" = "Model Source";
+"Remove Model" = "Remove Model";
+"Download Model…" = "Download Model…";
+"Accept and Download" = "Accept and Download";
+"Download the eye contact model?" = "Download the eye contact model?";
+"Not downloaded" = "Not downloaded";
+"Downloading" = "Downloading";
+"Ready" = "Ready";
+"The model description is missing from this build." = "The model description is missing from this build.";
+"About 6 MB is downloaded from github.com/chihfanhsu/gaze_correction. The weights may be used for non-commercial purposes only. Download only if your use is non-commercial." = "About 6 MB is downloaded from github.com/chihfanhsu/gaze_correction. The weights may be used for non-commercial purposes only. Download only if your use is non-commercial.";
+"Eye Contact uses the gaze model of \"Look at Me! Correcting Eye Gaze in Live Video Communication\" (Hsu et al., 2019). Its code and weights are published under the BSD 3-Clause license; the weights were trained on data offered for non-commercial use only. LUMIX Webcam does not include them: they are downloaded from the authors' repository when you ask." = "Eye Contact uses the gaze model of \"Look at Me! Correcting Eye Gaze in Live Video Communication\" (Hsu et al., 2019). Its code and weights are published under the BSD 3-Clause license; the weights were trained on data offered for non-commercial use only. LUMIX Webcam does not include them: they are downloaded from the authors' repository when you ask.";

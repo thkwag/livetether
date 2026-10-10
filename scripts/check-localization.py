@@ -29,7 +29,7 @@ FORMAT_SPECIFIER = re.compile(r"%(?:\d+\$)?(?:@|lld|ld|d|lf|f|s)")
 # SwiftUI initializers and the app's own views that take a LocalizedStringKey, `String(localized:)`,
 # and `title:` arguments.
 LOCALIZED_LITERAL = re.compile(
-    r'(?:\b(?:Text|Button|Label|Toggle|Picker|Section|LabeledContent|TextField|SecureField|Window|Menu|Link|SettingsGroup|SettingsNote)\(\s*'
+    r'(?:\b(?:Text|Button|Label|Toggle|Picker|Section|LabeledContent|TextField|SecureField|Window|Menu|Link|SettingsGroup|SettingsNote|confirmationDialog)\(\s*'
     r'|\bString\(localized:\s*|\btitle:\s*)"((?:[^"\\]|\\.)*)"'
 )
 

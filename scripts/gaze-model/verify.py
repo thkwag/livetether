@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""Checks the converted eye contact model against the original TensorFlow graph.
+"""Writes the original TensorFlow model's outputs for the app's eye contact network to match.
 
 The original model code (flx.py, tf_utils.py, transformation.py from the pinned commit of
-github.com/chihfanhsu/gaze_correction) is downloaded and run in TensorFlow's 1.x mode on the same
-random inputs as the Core ML model; the flows and light weights must agree.
+github.com/chihfanhsu/gaze_correction) is downloaded and run in TensorFlow's 1.x mode on random
+inputs; the inputs and the flows and light weights it returns go to a reference file, which
+`lumix-eye-contact-probe <weights> --verify <reference>` compares with the app's network.
 
 With --fixture, it also writes the warp-and-light fixture the Swift tests use: random small images,
 flows and light weights, and the image the original transformation code makes of them.
 
-Usage: python3 scripts/gaze-model/verify.py [--model App/GazeModel/GazeWarp.mlpackage]
-                                            [--weights build/gaze-weights] [--fixture PATH]
+Usage: python3 scripts/gaze-model/verify.py [--weights build/gaze-weights]
+                                            [--reference build/gaze-reference.json] [--fixture PATH]
 """
 
 import argparse
@@ -21,7 +22,6 @@ import urllib.request
 
 import numpy as np
 import tensorflow as tf
-import coremltools as ct
 
 SOURCE = "https://raw.githubusercontent.com/chihfanhsu/gaze_correction/7cc76e4ccaf76c950730c593ffa22bed30c807a4/gaze_correction_system"
 
@@ -88,31 +88,28 @@ def fixture(transformation, flx, rng, path: pathlib.Path):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default="App/GazeModel/GazeWarp.mlpackage")
     parser.add_argument("--weights", default="build/gaze-weights")
+    parser.add_argument("--reference", default="build/gaze-reference.json")
     parser.add_argument("--fixture")
     arguments = parser.parse_args()
     flx, transformation = original_modules(pathlib.Path(arguments.weights) / "original")
     rng = np.random.default_rng(7)
     if arguments.fixture:
         fixture(transformation, flx, rng, pathlib.Path(arguments.fixture))
-    model = ct.models.MLModel(arguments.model)
-    worst = {"flow": 0.0, "light": 0.0}
+    cases = []
     for _ in range(5):
         left, right = random_inputs(rng), random_inputs(rng)
         angle = left[2]
-        outputs = model.predict({
-            "left_patch": left[0].transpose(0, 3, 1, 2), "left_anchors": left[1].transpose(0, 3, 1, 2),
-            "right_patch": right[0].transpose(0, 3, 1, 2), "right_anchors": right[1].transpose(0, 3, 1, 2),
-            "angle": angle,
-        })
+        case = {"angle": angle[0].tolist()}
         for side, inputs, prefix in (("L", left, "left"), ("R", right, "right")):
             flow, light, _ = reference(flx, pathlib.Path(arguments.weights), side, inputs[0], inputs[1], angle)
-            worst["flow"] = max(worst["flow"], float(np.abs(outputs[f"{prefix}_flow"].transpose(0, 2, 3, 1) - flow).max()))
-            worst["light"] = max(worst["light"], float(np.abs(outputs[f"{prefix}_light"].transpose(0, 2, 3, 1) - light).max()))
-    # A flow error of 0.01 moves a pixel by a third of a pixel in a 64-pixel-wide patch.
-    print(f"largest difference: flow {worst['flow']:.5f}, light {worst['light']:.5f}")
-    sys.exit(0 if worst["flow"] < 0.01 and worst["light"] < 0.01 else 1)
+            case[f"{prefix}_patch"] = inputs[0][0].reshape(-1).tolist()
+            case[f"{prefix}_anchors"] = inputs[1][0].reshape(-1).tolist()
+            case[f"{prefix}_flow"] = flow[0].reshape(-1).tolist()
+            case[f"{prefix}_light"] = light[0].reshape(-1).tolist()
+        cases.append(case)
+    pathlib.Path(arguments.reference).write_text(json.dumps({"cases": cases}))
+    print(f"Wrote {arguments.reference}; compare with: lumix-eye-contact-probe {arguments.weights} --verify {arguments.reference}")
 
 
 if __name__ == "__main__":

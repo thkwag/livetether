@@ -17,6 +17,5 @@ DerivedData/
 .swiftpm/
 xcuserdata/
 
-# Eye contact model converted from weights that may not be redistributed
-/App/GazeModel/
+# Python environment for the gaze model scripts
 .venv-gaze/

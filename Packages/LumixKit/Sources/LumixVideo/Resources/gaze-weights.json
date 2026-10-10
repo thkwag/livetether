@@ -1,0 +1,812 @@
+{
+ "commit": "7cc76e4ccaf76c950730c593ffa22bed30c807a4",
+ "files": {
+  "L": {
+   "path": "L/L.data-00000-of-00001",
+   "sha256": "f3fc192fef20f56ff9ff39966c6b7fa650a7122df2e406daaa84fc7b8e426e2b",
+   "size": 2994764,
+   "tensors": {
+    "encoder/dnn_blk_0/dnn/bias": {
+     "offset": 12,
+     "shape": [
+      16
+     ]
+    },
+    "encoder/dnn_blk_0/dnn/kernel": {
+     "offset": 204,
+     "shape": [
+      2,
+      16
+     ]
+    },
+    "encoder/dnn_blk_1/dnn/bias": {
+     "offset": 588,
+     "shape": [
+      16
+     ]
+    },
+    "encoder/dnn_blk_1/dnn/kernel": {
+     "offset": 780,
+     "shape": [
+      16,
+      16
+     ]
+    },
+    "encoder/dnn_blk_2/dnn/bias": {
+     "offset": 3852,
+     "shape": [
+      16
+     ]
+    },
+    "encoder/dnn_blk_2/dnn/kernel": {
+     "offset": 4044,
+     "shape": [
+      16,
+      16
+     ]
+    },
+    "lcm_module/cnn_2/kernel": {
+     "offset": 7116,
+     "shape": [
+      1,
+      1,
+      8,
+      2
+     ]
+    },
+    "lcm_module/cnn_blk_0/bn_layer/beta": {
+     "offset": 7308,
+     "shape": [
+      8
+     ]
+    },
+    "lcm_module/cnn_blk_0/bn_layer/gamma": {
+     "offset": 7404,
+     "shape": [
+      8
+     ]
+    },
+    "lcm_module/cnn_blk_0/bn_layer/moving_mean": {
+     "offset": 7500,
+     "shape": [
+      8
+     ]
+    },
+    "lcm_module/cnn_blk_0/bn_layer/moving_variance": {
+     "offset": 7532,
+     "shape": [
+      8
+     ]
+    },
+    "lcm_module/cnn_blk_0/cnn/kernel": {
+     "offset": 7564,
+     "shape": [
+      3,
+      3,
+      2,
+      8
+     ]
+    },
+    "lcm_module/cnn_blk_1/bn_layer/beta": {
+     "offset": 9292,
+     "shape": [
+      8
+     ]
+    },
+    "lcm_module/cnn_blk_1/bn_layer/gamma": {
+     "offset": 9388,
+     "shape": [
+      8
+     ]
+    },
+    "lcm_module/cnn_blk_1/bn_layer/moving_mean": {
+     "offset": 9484,
+     "shape": [
+      8
+     ]
+    },
+    "lcm_module/cnn_blk_1/bn_layer/moving_variance": {
+     "offset": 9516,
+     "shape": [
+      8
+     ]
+    },
+    "lcm_module/cnn_blk_1/cnn/kernel": {
+     "offset": 9548,
+     "shape": [
+      3,
+      3,
+      8,
+      8
+     ]
+    },
+    "warping_module/coarse_level/cnn_4/kernel": {
+     "offset": 16460,
+     "shape": [
+      1,
+      1,
+      32,
+      16
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_0/bn_layer/beta": {
+     "offset": 22604,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_0/bn_layer/gamma": {
+     "offset": 22988,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_0/bn_layer/moving_mean": {
+     "offset": 23372,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_0/bn_layer/moving_variance": {
+     "offset": 23500,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_0/cnn/kernel": {
+     "offset": 23628,
+     "shape": [
+      5,
+      5,
+      31,
+      32
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_1/bn_layer/beta": {
+     "offset": 321228,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_1/bn_layer/gamma": {
+     "offset": 321996,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_1/bn_layer/moving_mean": {
+     "offset": 322764,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_1/bn_layer/moving_variance": {
+     "offset": 323020,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_1/cnn/kernel": {
+     "offset": 323276,
+     "shape": [
+      3,
+      3,
+      32,
+      64
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_2/bn_layer/beta": {
+     "offset": 544460,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_2/bn_layer/gamma": {
+     "offset": 545228,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_2/bn_layer/moving_mean": {
+     "offset": 545996,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_2/bn_layer/moving_variance": {
+     "offset": 546252,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_2/cnn/kernel": {
+     "offset": 546508,
+     "shape": [
+      3,
+      3,
+      96,
+      64
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_3/bn_layer/beta": {
+     "offset": 1210060,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_3/bn_layer/gamma": {
+     "offset": 1210444,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_3/bn_layer/moving_mean": {
+     "offset": 1210828,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_3/bn_layer/moving_variance": {
+     "offset": 1210956,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_3/cnn/kernel": {
+     "offset": 1211084,
+     "shape": [
+      3,
+      3,
+      160,
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_4/kernel": {
+     "offset": 1764044,
+     "shape": [
+      1,
+      1,
+      16,
+      4
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_0/bn_layer/beta": {
+     "offset": 1764812,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_0/bn_layer/gamma": {
+     "offset": 1765196,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_0/bn_layer/moving_mean": {
+     "offset": 1765580,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_0/bn_layer/moving_variance": {
+     "offset": 1765708,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_0/cnn/kernel": {
+     "offset": 1765836,
+     "shape": [
+      5,
+      5,
+      47,
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_1/bn_layer/beta": {
+     "offset": 2217036,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_1/bn_layer/gamma": {
+     "offset": 2217804,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_1/bn_layer/moving_mean": {
+     "offset": 2218572,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_1/bn_layer/moving_variance": {
+     "offset": 2218828,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_1/cnn/kernel": {
+     "offset": 2219084,
+     "shape": [
+      3,
+      3,
+      32,
+      64
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_2/bn_layer/beta": {
+     "offset": 2440268,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_2/bn_layer/gamma": {
+     "offset": 2440652,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_2/bn_layer/moving_mean": {
+     "offset": 2441036,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_2/bn_layer/moving_variance": {
+     "offset": 2441164,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_2/cnn/kernel": {
+     "offset": 2441292,
+     "shape": [
+      3,
+      3,
+      96,
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_3/bn_layer/beta": {
+     "offset": 2773068,
+     "shape": [
+      16
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_3/bn_layer/gamma": {
+     "offset": 2773260,
+     "shape": [
+      16
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_3/bn_layer/moving_mean": {
+     "offset": 2773452,
+     "shape": [
+      16
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_3/bn_layer/moving_variance": {
+     "offset": 2773516,
+     "shape": [
+      16
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_3/cnn/kernel": {
+     "offset": 2773580,
+     "shape": [
+      3,
+      3,
+      128,
+      16
+     ]
+    }
+   }
+  },
+  "R": {
+   "path": "R/R.data-00000-of-00001",
+   "sha256": "b978676480ecdb8c8134b8c033aa6ee959a40401b3d5492aa99003f9e37843c3",
+   "size": 2994764,
+   "tensors": {
+    "encoder/dnn_blk_0/dnn/bias": {
+     "offset": 12,
+     "shape": [
+      16
+     ]
+    },
+    "encoder/dnn_blk_0/dnn/kernel": {
+     "offset": 204,
+     "shape": [
+      2,
+      16
+     ]
+    },
+    "encoder/dnn_blk_1/dnn/bias": {
+     "offset": 588,
+     "shape": [
+      16
+     ]
+    },
+    "encoder/dnn_blk_1/dnn/kernel": {
+     "offset": 780,
+     "shape": [
+      16,
+      16
+     ]
+    },
+    "encoder/dnn_blk_2/dnn/bias": {
+     "offset": 3852,
+     "shape": [
+      16
+     ]
+    },
+    "encoder/dnn_blk_2/dnn/kernel": {
+     "offset": 4044,
+     "shape": [
+      16,
+      16
+     ]
+    },
+    "lcm_module/cnn_2/kernel": {
+     "offset": 7116,
+     "shape": [
+      1,
+      1,
+      8,
+      2
+     ]
+    },
+    "lcm_module/cnn_blk_0/bn_layer/beta": {
+     "offset": 7308,
+     "shape": [
+      8
+     ]
+    },
+    "lcm_module/cnn_blk_0/bn_layer/gamma": {
+     "offset": 7404,
+     "shape": [
+      8
+     ]
+    },
+    "lcm_module/cnn_blk_0/bn_layer/moving_mean": {
+     "offset": 7500,
+     "shape": [
+      8
+     ]
+    },
+    "lcm_module/cnn_blk_0/bn_layer/moving_variance": {
+     "offset": 7532,
+     "shape": [
+      8
+     ]
+    },
+    "lcm_module/cnn_blk_0/cnn/kernel": {
+     "offset": 7564,
+     "shape": [
+      3,
+      3,
+      2,
+      8
+     ]
+    },
+    "lcm_module/cnn_blk_1/bn_layer/beta": {
+     "offset": 9292,
+     "shape": [
+      8
+     ]
+    },
+    "lcm_module/cnn_blk_1/bn_layer/gamma": {
+     "offset": 9388,
+     "shape": [
+      8
+     ]
+    },
+    "lcm_module/cnn_blk_1/bn_layer/moving_mean": {
+     "offset": 9484,
+     "shape": [
+      8
+     ]
+    },
+    "lcm_module/cnn_blk_1/bn_layer/moving_variance": {
+     "offset": 9516,
+     "shape": [
+      8
+     ]
+    },
+    "lcm_module/cnn_blk_1/cnn/kernel": {
+     "offset": 9548,
+     "shape": [
+      3,
+      3,
+      8,
+      8
+     ]
+    },
+    "warping_module/coarse_level/cnn_4/kernel": {
+     "offset": 16460,
+     "shape": [
+      1,
+      1,
+      32,
+      16
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_0/bn_layer/beta": {
+     "offset": 22604,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_0/bn_layer/gamma": {
+     "offset": 22988,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_0/bn_layer/moving_mean": {
+     "offset": 23372,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_0/bn_layer/moving_variance": {
+     "offset": 23500,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_0/cnn/kernel": {
+     "offset": 23628,
+     "shape": [
+      5,
+      5,
+      31,
+      32
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_1/bn_layer/beta": {
+     "offset": 321228,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_1/bn_layer/gamma": {
+     "offset": 321996,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_1/bn_layer/moving_mean": {
+     "offset": 322764,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_1/bn_layer/moving_variance": {
+     "offset": 323020,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_1/cnn/kernel": {
+     "offset": 323276,
+     "shape": [
+      3,
+      3,
+      32,
+      64
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_2/bn_layer/beta": {
+     "offset": 544460,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_2/bn_layer/gamma": {
+     "offset": 545228,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_2/bn_layer/moving_mean": {
+     "offset": 545996,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_2/bn_layer/moving_variance": {
+     "offset": 546252,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_2/cnn/kernel": {
+     "offset": 546508,
+     "shape": [
+      3,
+      3,
+      96,
+      64
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_3/bn_layer/beta": {
+     "offset": 1210060,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_3/bn_layer/gamma": {
+     "offset": 1210444,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_3/bn_layer/moving_mean": {
+     "offset": 1210828,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_3/bn_layer/moving_variance": {
+     "offset": 1210956,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/coarse_level/cnn_blk_3/cnn/kernel": {
+     "offset": 1211084,
+     "shape": [
+      3,
+      3,
+      160,
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_4/kernel": {
+     "offset": 1764044,
+     "shape": [
+      1,
+      1,
+      16,
+      4
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_0/bn_layer/beta": {
+     "offset": 1764812,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_0/bn_layer/gamma": {
+     "offset": 1765196,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_0/bn_layer/moving_mean": {
+     "offset": 1765580,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_0/bn_layer/moving_variance": {
+     "offset": 1765708,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_0/cnn/kernel": {
+     "offset": 1765836,
+     "shape": [
+      5,
+      5,
+      47,
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_1/bn_layer/beta": {
+     "offset": 2217036,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_1/bn_layer/gamma": {
+     "offset": 2217804,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_1/bn_layer/moving_mean": {
+     "offset": 2218572,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_1/bn_layer/moving_variance": {
+     "offset": 2218828,
+     "shape": [
+      64
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_1/cnn/kernel": {
+     "offset": 2219084,
+     "shape": [
+      3,
+      3,
+      32,
+      64
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_2/bn_layer/beta": {
+     "offset": 2440268,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_2/bn_layer/gamma": {
+     "offset": 2440652,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_2/bn_layer/moving_mean": {
+     "offset": 2441036,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_2/bn_layer/moving_variance": {
+     "offset": 2441164,
+     "shape": [
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_2/cnn/kernel": {
+     "offset": 2441292,
+     "shape": [
+      3,
+      3,
+      96,
+      32
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_3/bn_layer/beta": {
+     "offset": 2773068,
+     "shape": [
+      16
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_3/bn_layer/gamma": {
+     "offset": 2773260,
+     "shape": [
+      16
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_3/bn_layer/moving_mean": {
+     "offset": 2773452,
+     "shape": [
+      16
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_3/bn_layer/moving_variance": {
+     "offset": 2773516,
+     "shape": [
+      16
+     ]
+    },
+    "warping_module/fine_level/cnn_blk_3/cnn/kernel": {
+     "offset": 2773580,
+     "shape": [
+      3,
+      3,
+      128,
+      16
+     ]
+    }
+   }
+  }
+ },
+ "source": "https://github.com/chihfanhsu/gaze_correction/raw/7cc76e4ccaf76c950730c593ffa22bed30c807a4/gaze_correction_system/weights/warping_model/flx/12"
+}

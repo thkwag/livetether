@@ -31,8 +31,8 @@ respective owners.
   a face turned to one side gets extra room on that side. People are found in a small grayscale
   copy of the picture, on this Mac only; no picture is stored or sent.
 - With Eye Contact on, the app moves the eyes of a face looking straight ahead so they look into
-  the camera, and fades the correction out as the head turns. It needs the gaze model described
-  under Build; a build without it leaves the switch off.
+  the camera, and fades the correction out as the head turns. The gaze model it needs is downloaded
+  on request (see Eye contact model under Build).
 
 The app sends the camera only the commands live view needs: open and close a session, read and
 set the live-view size, turn live view on and off, and fetch live-view frames. These Panasonic PTP
@@ -105,19 +105,23 @@ team, set `DEVELOPMENT_TEAM` in `project.yml`, change `bundleIdPrefix` there, an
 Eye Contact uses the gaze-warping network of "Look at Me! Correcting Eye Gaze in Live Video
 Communication" (Hsu et al., ACM TOMM 2019), whose code and weights are published under the
 BSD-3-Clause license at [chihfanhsu/gaze_correction](https://github.com/chihfanhsu/gaze_correction).
-The weights were trained on a dataset offered for non-commercial use only, so this repository
-contains neither the weights nor the converted model. The conversion script downloads the weights
-and writes the Core ML model to `App/GazeModel/`, which the build then includes:
+The weights were trained on a dataset offered for non-commercial use only, so neither this
+repository nor the app contains them. In Settings > Camera, Download Model shows these terms and,
+once accepted, downloads the two weight files (about 6 MB) from a fixed commit of that repository,
+checks their SHA-256 digests, and builds the network on this Mac with Metal Performance Shaders.
+
+`Packages/LumixKit/Sources/LumixVideo/Resources/gaze-weights.json` lists where each weight sits in
+those files; `scripts/gaze-model/manifest.py` writes it. To check the network against the original
+TensorFlow model:
 
 ```sh
-python3.11 -m venv .venv-gaze && .venv-gaze/bin/pip install "tensorflow==2.15.1" "numpy<2" "coremltools==8.3"
-.venv-gaze/bin/python scripts/gaze-model/convert.py
+python3.11 -m venv .venv-gaze && .venv-gaze/bin/pip install "tensorflow==2.15.1" "numpy<2"
 .venv-gaze/bin/python scripts/gaze-model/verify.py
+cd Packages/LumixKit && swift run -c release lumix-eye-contact-probe ../../build/gaze-weights --verify ../../build/gaze-reference.json
 ```
 
-`verify.py` runs the original TensorFlow model next to the converted one and fails when their
-outputs differ. `lumix-eye-contact-probe <GazeWarp.mlpackage> [video]` in `Packages/LumixKit`
-runs the correction on a synthetic picture or on the faces in a video.
+`lumix-eye-contact-probe <weights folder> <video> [--save <folder>]` corrects the faces in a video
+and saves before-and-after pictures of the eyes.
 
 ### App icon
 
@@ -177,7 +181,7 @@ cd Packages/LumixKit && swift run lumix-framing-probe ~/Movies/people.mov
 | `Packages/LumixKit/Tools/SinkProbe/` | `lumix-sink-probe` |
 | `Packages/LumixKit/Tools/FramingProbe/` | `lumix-framing-probe` |
 | `Packages/LumixKit/Tools/EyeContactProbe/` | `lumix-eye-contact-probe` |
-| `scripts/gaze-model/` | Conversion and verification of the eye contact model |
+| `scripts/gaze-model/` | The eye contact weight manifest and the check against the original model |
 | `scripts/check-localization.py` | The localization check |
 | `scripts/check-window-layout.swift` | The window layout check |
 | `scripts/make-app-icon.swift` | The app icon drawing |

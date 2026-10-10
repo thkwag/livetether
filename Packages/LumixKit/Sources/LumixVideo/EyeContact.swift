@@ -1,5 +1,4 @@
 import Accelerate
-import CoreML
 import CoreVideo
 import Foundation
 import Vision
@@ -130,15 +129,16 @@ struct EyePatch: Equatable {
         x >= 0 && y >= 0 && x + width <= size.width && y + height <= size.height
     }
 
-    /// Twelve maps, two per landmark: the column minus the landmark's x, then the row minus its y.
+    /// Twelve maps, two per landmark: the column minus the landmark's x, then the row minus its y,
+    /// interleaved per pixel.
     func anchorMaps() -> [Float] {
         var maps = [Float](repeating: 0, count: 12 * Self.height * Self.width)
-        for (index, anchor) in anchors.enumerated() {
-            for row in 0..<Self.height {
-                for column in 0..<Self.width {
-                    let offset = row * Self.width + column
-                    maps[(index * 2) * Self.height * Self.width + offset] = Float(column - anchor.x)
-                    maps[(index * 2 + 1) * Self.height * Self.width + offset] = Float(row - anchor.y)
+        for row in 0..<Self.height {
+            for column in 0..<Self.width {
+                let pixel = (row * Self.width + column) * 12
+                for (index, anchor) in anchors.enumerated() {
+                    maps[pixel + index * 2] = Float(column - anchor.x)
+                    maps[pixel + index * 2 + 1] = Float(row - anchor.y)
                 }
             }
         }
@@ -186,19 +186,19 @@ public enum GazeWarp {
     }
 }
 
-/// Redirects the eyes of a face toward the camera with the gaze-warping model.
+/// Redirects the eyes of a face toward the camera with the gaze-warping networks.
 ///
-/// The model was trained on faces looking straight at the screen, so the correction is applied in
-/// full only while the face points at the camera and fades out as it turns away.
-public final class EyeContactCorrector: @unchecked Sendable {
-    // `MLModel` prediction is thread-safe; the corrector holds no other mutable state.
-    private let model: MLModel
+/// The networks were trained on faces looking straight at the screen, so the correction is applied
+/// in full only while the face points at the camera and fades out as it turns away.
+public final class EyeContactCorrector: Sendable {
+    private let network: GazeNetwork
 
     /// The redirection angle in degrees: vertical (positive moves the gaze up), then horizontal.
-    public var angle: (vertical: Float, horizontal: Float) = (15, 0)
+    public let angle: (vertical: Float, horizontal: Float)
 
-    public init(model: MLModel) {
-        self.model = model
+    public init(network: GazeNetwork, angle: (vertical: Float, horizontal: Float) = (15, 0)) {
+        self.network = network
+        self.angle = angle
     }
 
     /// How strongly to correct a face with this head pose: 1 straight ahead, falling to 0 at
@@ -213,36 +213,25 @@ public final class EyeContactCorrector: @unchecked Sendable {
         guard strength > 0 else { return }
         try picture.requireBGRA()
         let size = picture.pixelSize
-        // The model named "left" is the one for the eye on the picture's right.
-        guard let modelLeft = EyePatch(eye: face.rightEye, mirrored: true),
-              let modelRight = EyePatch(eye: face.leftEye, mirrored: false),
-              modelLeft.fits(in: size), modelRight.fits(in: size) else { return }
+        // The network "L" works on the eye on the picture's right, with its landmarks mirrored.
+        guard let eyeL = EyePatch(eye: face.rightEye, mirrored: true),
+              let eyeR = EyePatch(eye: face.leftEye, mirrored: false),
+              eyeL.fits(in: size), eyeR.fits(in: size) else { return }
         try picture.withLockedBase(readOnly: false) { (base, rowBytes) throws(VideoError) in
-            let leftImage = Self.read(modelLeft, base: base, rowBytes: rowBytes)
-            let rightImage = Self.read(modelRight, base: base, rowBytes: rowBytes)
-            let outputs: MLFeatureProvider
+            let imageL = Self.read(eyeL, base: base, rowBytes: rowBytes)
+            let imageR = Self.read(eyeR, base: base, rowBytes: rowBytes)
+            let outputs: (left: GazeNetwork.Output, right: GazeNetwork.Output)
             do {
-                let inputs = try MLDictionaryFeatureProvider(dictionary: [
-                    "left_patch": try Self.array(leftImage, channels: 3, interleaved: true),
-                    "left_anchors": try Self.array(modelLeft.anchorMaps(), channels: 12, interleaved: false),
-                    "right_patch": try Self.array(rightImage, channels: 3, interleaved: true),
-                    "right_anchors": try Self.array(modelRight.anchorMaps(), channels: 12, interleaved: false),
-                    "angle": try Self.angleArray(angle),
-                ])
-                outputs = try model.prediction(from: inputs)
-            } catch {
-                throw .detectionFailed("Eye contact model: \(error.localizedDescription)")
-            }
-            for (patch, image, prefix) in [(modelLeft, leftImage, "left"), (modelRight, rightImage, "right")] {
-                guard let flow = outputs.featureValue(for: "\(prefix)_flow")?.multiArrayValue,
-                      let light = outputs.featureValue(for: "\(prefix)_light")?.multiArrayValue else { continue }
-                let corrected = GazeWarp.apply(
-                    image: image,
-                    flow: Self.interleave(flow),
-                    light: Self.interleave(light),
-                    height: EyePatch.height,
-                    width: EyePatch.width
+                outputs = try network.run(
+                    left: (imageL, eyeL.anchorMaps()),
+                    right: (imageR, eyeR.anchorMaps()),
+                    angle: (angle.vertical, angle.horizontal)
                 )
+            } catch {
+                throw .detectionFailed("Eye contact network: \(error)")
+            }
+            for (patch, image, output) in [(eyeL, imageL, outputs.left), (eyeR, imageR, outputs.right)] {
+                let corrected = GazeWarp.apply(image: image, flow: output.flow, light: output.light, height: EyePatch.height, width: EyePatch.width)
                 Self.write(corrected, into: patch, base: base, rowBytes: rowBytes, strength: Float(strength))
             }
         }
@@ -307,47 +296,6 @@ public final class EyeContactCorrector: @unchecked Sendable {
                 }
             }
         }
-    }
-
-    // MARK: - Tensors
-
-    /// A 1 × channels × 48 × 64 tensor from `values`, which are pixel-interleaved or channel-planar.
-    static func array(_ values: [Float], channels: Int, interleaved: Bool) throws -> MLMultiArray {
-        let array = try MLMultiArray(shape: [1, NSNumber(value: channels), 48, 64], dataType: .float32)
-        let plane = EyePatch.height * EyePatch.width
-        let pointer = array.dataPointer.assumingMemoryBound(to: Float.self)
-        for channel in 0..<channels {
-            for pixel in 0..<plane {
-                pointer[channel * plane + pixel] = interleaved ? values[pixel * channels + channel] : values[channel * plane + pixel]
-            }
-        }
-        return array
-    }
-
-    static func angleArray(_ angle: (vertical: Float, horizontal: Float)) throws -> MLMultiArray {
-        let array = try MLMultiArray(shape: [1, 2], dataType: .float32)
-        array[0] = NSNumber(value: angle.vertical)
-        array[1] = NSNumber(value: angle.horizontal)
-        return array
-    }
-
-    /// A 1 × 2 × 48 × 64 model output as pixel-interleaved pairs.
-    static func interleave(_ array: MLMultiArray) -> [Float] {
-        let plane = EyePatch.height * EyePatch.width
-        var output = [Float](repeating: 0, count: plane * 2)
-        let strides = array.strides.map(\.intValue)
-        // Read the buffer directly; going through NSNumber per element costs more than the model.
-        array.withUnsafeBufferPointer(ofType: Float.self) { values in
-            for channel in 0..<2 {
-                for row in 0..<EyePatch.height {
-                    for column in 0..<EyePatch.width {
-                        let index = channel * strides[1] + row * strides[2] + column * strides[3]
-                        output[(row * EyePatch.width + column) * 2 + channel] = values[index]
-                    }
-                }
-            }
-        }
-        return output
     }
 }
 

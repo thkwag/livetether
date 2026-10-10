@@ -64,4 +64,15 @@
 "Keeps the people in front of the camera in the middle of the picture and follows them as they move, giving room on the side they look to. People are found on this Mac only; no picture is stored or sent." = "カメラの前の人を画面の中央に保ち、動きに合わせて追いかけ、顔を向けている側に余白を取ります。人の検出はこのMac上でのみ行い、映像を保存したり送信したりしません。";
 "Eye Contact" = "アイコンタクト";
 "Moves the eyes so they look into the camera while the face looks straight ahead, and fades out as the head turns. The eyes are changed on this Mac only." = "顔が正面を向いているとき、目がカメラを見るように視線を補正し、顔を横に向けると徐々に補正を弱めます。目の補正はこのMac上でのみ行います。";
-"This build does not include the eye contact model." = "このビルドにはアイコンタクトのモデルが含まれていません。";
+"Model" = "モデル";
+"Model Source" = "モデルの入手元";
+"Remove Model" = "モデルを削除";
+"Download Model…" = "モデルをダウンロード…";
+"Accept and Download" = "同意してダウンロード";
+"Download the eye contact model?" = "アイコンタクトのモデルをダウンロードしますか?";
+"Not downloaded" = "未ダウンロード";
+"Downloading" = "ダウンロード中";
+"Ready" = "使用可能";
+"The model description is missing from this build." = "このビルドにはモデルの情報ファイルがありません。";
+"About 6 MB is downloaded from github.com/chihfanhsu/gaze_correction. The weights may be used for non-commercial purposes only. Download only if your use is non-commercial." = "github.com/chihfanhsu/gaze_correction から約 6 MB をダウンロードします。この重みは非商用目的でのみ使用できます。非商用の用途の場合のみダウンロードしてください。";
+"Eye Contact uses the gaze model of \"Look at Me! Correcting Eye Gaze in Live Video Communication\" (Hsu et al., 2019). Its code and weights are published under the BSD 3-Clause license; the weights were trained on data offered for non-commercial use only. LUMIX Webcam does not include them: they are downloaded from the authors' repository when you ask." = "アイコンタクトは \"Look at Me! Correcting Eye Gaze in Live Video Communication\"(Hsu ほか、2019)の視線モデルを使用します。コードと重みは BSD 3-Clause ライセンスで公開されており、重みは非商用利用のみ許可されたデータで学習されています。LUMIX Webcam には含まれておらず、要求したときに作者のリポジトリからダウンロードします。";

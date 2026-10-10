@@ -56,8 +56,9 @@ struct EyeContactTests {
         let maps = patch.anchorMaps()
         let plane = 48 * 64
         // At row 10, column 20: column minus the first landmark's x, row minus its y.
-        #expect(maps[10 * 64 + 20] == Float(20 - patch.anchors[0].x))
-        #expect(maps[plane + 10 * 64 + 20] == Float(10 - patch.anchors[0].y))
+        #expect(maps[(10 * 64 + 20) * 12] == Float(20 - patch.anchors[0].x))
+        #expect(maps[(10 * 64 + 20) * 12 + 1] == Float(10 - patch.anchors[0].y))
+        #expect(maps.count == plane * 12)
     }
 
     @Test("The correction is full straight ahead and fades out by 20 degrees of turn")

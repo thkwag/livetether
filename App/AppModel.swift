@@ -1,5 +1,4 @@
 import AppKit
-import CoreML
 import Foundation
 import LumixImageCapture
 import LumixProtocol
@@ -20,6 +19,7 @@ final class AppModel {
     let settings: AppSettings
     let installer = ExtensionInstaller()
     let loginItem = LoginItem()
+    let gazeModel = GazeModelStore()
     let link: CameraLinkController
     let legacyPluginInstalled: Bool
 
@@ -28,7 +28,6 @@ final class AppModel {
 
     @ObservationIgnored private let discovery: ImageCaptureDiscovery
     @ObservationIgnored private let pipeline: FramePipeline
-    @ObservationIgnored private var eyeContactCorrector: EyeContactCorrector?
     @ObservationIgnored private var sourceActivity: DarwinStateChannel?
     @ObservationIgnored private var sourceObservation: DarwinObservation?
     @ObservationIgnored private var linkStatus: DarwinStateChannel?
@@ -48,8 +47,7 @@ final class AppModel {
 
         link.preferredSize = { [weak settings] model in settings?.preferredSize(for: model) }
         pipeline.setAutoFraming(settings.autoFramingEnabled)
-        eyeContactCorrector = Self.loadEyeContactCorrector(log: log)
-        pipeline.setEyeContact(eyeContactCorrector, enabled: settings.eyeContactEnabled)
+        pipeline.setEyeContact(gazeModel.corrector, enabled: settings.eyeContactEnabled)
         discovery.onEvent = { [weak self] event in self?.link.handle(event) }
         observeSourceActivity()
         publishStatusPeriodically()
@@ -105,23 +103,23 @@ final class AppModel {
         pipeline.setAutoFraming(enabled)
     }
 
-    /// Whether this build carries the gaze model the eye contact correction needs.
-    var eyeContactAvailable: Bool { eyeContactCorrector != nil }
+    /// Whether the gaze weights have been downloaded and the correction can run.
+    var eyeContactAvailable: Bool { gazeModel.state == .ready }
 
     func setEyeContact(_ enabled: Bool) {
         settings.eyeContactEnabled = enabled
-        pipeline.setEyeContact(eyeContactCorrector, enabled: enabled)
+        pipeline.setEyeContact(gazeModel.corrector, enabled: enabled)
     }
 
-    /// The gaze model is built by scripts/gaze-model/convert.py and is absent from builds without it.
-    private static func loadEyeContactCorrector(log: Logger) -> EyeContactCorrector? {
-        guard let url = Bundle.main.url(forResource: "GazeWarp", withExtension: "mlmodelc") else { return nil }
-        do {
-            return EyeContactCorrector(model: try MLModel(contentsOf: url))
-        } catch {
-            log.error("Loading the gaze model failed: \(error.localizedDescription, privacy: .public)")
-            return nil
-        }
+    /// Downloads the gaze weights after the user accepted their terms, then applies the setting.
+    func downloadGazeModel() async {
+        await gazeModel.download()
+        pipeline.setEyeContact(gazeModel.corrector, enabled: settings.eyeContactEnabled)
+    }
+
+    func removeGazeModel() {
+        gazeModel.remove()
+        pipeline.setEyeContact(nil, enabled: false)
     }
 
     func applyProductIDs(_ ids: Set<Int>) {
