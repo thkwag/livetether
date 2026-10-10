@@ -74,7 +74,7 @@ struct OutputPolicyTests {
     @Test("Standby messages come from the requested language, and the actionable ones say what to do")
     func messagesFollowLanguage() {
         #expect(StandbyCopy.message(for: .waitingForCamera, language: .english).title == "Connect a camera")
-        #expect(StandbyCopy.message(for: .waitingForCamera, language: .korean).title == "카메라를 연결해 주세요")
+        #expect(StandbyCopy.message(for: .waitingForCamera, language: .korean).title == "카메라를 연결하세요")
         #expect(StandbyCopy.message(for: .waitingForCamera, language: .japanese).title == "カメラを接続してください")
         for language in StandbyLanguage.allCases {
             for indicator in [LinkIndicator.appNotRunning, .waitingForCamera, .cameraUnavailable] {

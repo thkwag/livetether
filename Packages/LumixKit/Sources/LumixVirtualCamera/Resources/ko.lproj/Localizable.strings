@@ -1,11 +1,11 @@
 /* Standby frame the virtual camera shows while no camera picture is available. */
-"standby.appNotRunning.title" = "LUMIX Webcam 앱이 실행되지 않았습니다";
-"standby.appNotRunning.detail" = "앱을 실행하면 카메라 영상이 표시됩니다.";
-"standby.waitingForCamera.title" = "카메라를 연결해 주세요";
-"standby.waitingForCamera.detail" = "카메라의 USB 모드를 PC(Tether)로 설정하고 USB 케이블로 연결합니다.";
-"standby.connecting.title" = "카메라에 연결하는 중입니다…";
+"standby.appNotRunning.title" = "LUMIX Webcam이 실행 중이 아닙니다";
+"standby.appNotRunning.detail" = "카메라 영상을 보려면 앱을 실행하세요.";
+"standby.waitingForCamera.title" = "카메라를 연결하세요";
+"standby.waitingForCamera.detail" = "USB 모드를 PC(Tether)로 설정하고 USB 케이블로 카메라를 연결하세요.";
+"standby.connecting.title" = "카메라 연결 중…";
 "standby.cameraUnavailable.title" = "카메라에 연결할 수 없습니다";
-"standby.cameraUnavailable.detail" = "LUMIX Tether 등 카메라를 사용하는 다른 앱을 종료해 주세요.";
-"standby.preparing.title" = "카메라 영상을 준비하는 중입니다…";
-"standby.communicationError.title" = "카메라와 통신할 수 없습니다";
+"standby.cameraUnavailable.detail" = "LUMIX Tether 등 카메라를 사용 중인 다른 앱을 종료하세요.";
+"standby.preparing.title" = "카메라 영상 준비 중…";
+"standby.communicationError.title" = "카메라 연결이 끊어졌습니다";
 "standby.communicationError.detail" = "잠시 후 다시 연결합니다.";

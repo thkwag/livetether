@@ -1,11 +1,11 @@
 /* Standby frame the virtual camera shows while no camera picture is available. */
 "standby.appNotRunning.title" = "LUMIX Webcam is not running";
-"standby.appNotRunning.detail" = "Open the app to show the camera picture.";
+"standby.appNotRunning.detail" = "Open the app to display video from the camera.";
 "standby.waitingForCamera.title" = "Connect a camera";
-"standby.waitingForCamera.detail" = "Set the camera's USB mode to PC (Tether) and connect it with a USB cable.";
+"standby.waitingForCamera.detail" = "Set USB mode to PC (Tether), then connect the camera with a USB cable.";
 "standby.connecting.title" = "Connecting to the camera…";
 "standby.cameraUnavailable.title" = "Cannot connect to the camera";
 "standby.cameraUnavailable.detail" = "Quit LUMIX Tether or any other app that is using the camera.";
-"standby.preparing.title" = "Preparing the camera picture…";
-"standby.communicationError.title" = "Lost contact with the camera";
-"standby.communicationError.detail" = "Reconnecting shortly.";
+"standby.preparing.title" = "Preparing camera video…";
+"standby.communicationError.title" = "Camera connection lost";
+"standby.communicationError.detail" = "Reconnecting soon.";
