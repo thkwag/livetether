@@ -221,7 +221,7 @@ public struct AutoFramer: Sendable {
             anchor = (x: faceBox.minX * width, y: faceBox.minY * height, width: faceBox.width * width, height: faceBox.height * height)
             cropHeight = max(largest * height * parameters.shot.faceHeights, anchor.width / parameters.subjectWidthShare / aspect)
         }
-        cropHeight = min(max(cropHeight, full.height / parameters.maximumZoom), full.height)
+        cropHeight = min(max(cropHeight, Self.innerHeight(source: source, output: output) / parameters.maximumZoom), full.height)
         let cropWidth = cropHeight * aspect
 
         var centerX = anchor.x + anchor.width / 2
@@ -281,33 +281,56 @@ public struct AutoFramer: Sendable {
 
     // MARK: - Geometry
 
-    /// The largest crop of the output's aspect ratio, centered in the picture.
+    /// The widest view: the smallest crop of the output's aspect ratio that holds the whole picture,
+    /// centered. Where the aspect ratios differ it reaches past the picture, and the outside is black.
     private static func fullComposition(source: PixelSize, output: PixelSize) -> Composition {
         let width = Double(source.width)
         let height = Double(source.height)
         let aspect = Double(output.width) / Double(output.height)
-        let cropHeight = width / height > aspect ? height : width / aspect
+        let cropHeight = width / height > aspect ? width / aspect : height
         return Composition(centerX: width / 2, centerY: height / 2, height: cropHeight)
+    }
+
+    /// The largest crop of the output's aspect ratio that lies inside the picture; zooming is
+    /// limited relative to it.
+    private static func innerHeight(source: PixelSize, output: PixelSize) -> Double {
+        let width = Double(source.width)
+        let height = Double(source.height)
+        let aspect = Double(output.width) / Double(output.height)
+        return width / height > aspect ? height : width / aspect
     }
 
     private func clamped(_ composition: Composition) -> Composition {
         let width = Double(source.width)
         let height = Double(source.height)
         let full = Self.fullComposition(source: source, output: output)
-        let cropHeight = min(max(composition.height, full.height / parameters.maximumZoom), full.height)
+        let smallest = Self.innerHeight(source: source, output: output) / parameters.maximumZoom
+        let cropHeight = min(max(composition.height, smallest), full.height)
         let cropWidth = cropHeight * aspect
+        // Along each axis a crop smaller than the picture stays inside it; a larger one is centered,
+        // so its black margins are even.
+        func place(_ center: Double, extent: Double, within length: Double) -> Double {
+            extent <= length ? min(max(center, extent / 2), length - extent / 2) : length / 2
+        }
         return Composition(
-            centerX: min(max(composition.centerX, cropWidth / 2), width - cropWidth / 2),
-            centerY: min(max(composition.centerY, cropHeight / 2), height - cropHeight / 2),
+            centerX: place(composition.centerX, extent: cropWidth, within: width),
+            centerY: place(composition.centerY, extent: cropHeight, within: height),
             height: cropHeight
         )
     }
 
     private func pixelRect(_ composition: Composition) -> PixelRect {
         let cropHeight = max(1, Int(composition.height.rounded()))
-        let cropWidth = min(source.width, max(1, Int((composition.height * aspect).rounded())))
-        let x = min(max(0, Int((composition.centerX - Double(cropWidth) / 2).rounded())), source.width - cropWidth)
-        let y = min(max(0, Int((composition.centerY - Double(cropHeight) / 2).rounded())), source.height - min(cropHeight, source.height))
-        return PixelRect(x: x, y: y, width: cropWidth, height: min(cropHeight, source.height))
+        let cropWidth = max(1, Int((composition.height * aspect).rounded()))
+        func origin(_ center: Double, _ extent: Int, _ length: Int) -> Int {
+            let value = Int((center - Double(extent) / 2).rounded())
+            return extent <= length ? min(max(0, value), length - extent) : value
+        }
+        return PixelRect(
+            x: origin(composition.centerX, cropWidth, source.width),
+            y: origin(composition.centerY, cropHeight, source.height),
+            width: cropWidth,
+            height: cropHeight
+        )
     }
 }

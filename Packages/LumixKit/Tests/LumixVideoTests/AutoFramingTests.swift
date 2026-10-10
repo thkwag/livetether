@@ -49,7 +49,7 @@ struct AutoFramingTests {
         (rect.minX * Double(source.width), rect.minY * Double(source.height), rect.maxX * Double(source.width), rect.maxY * Double(source.height))
     }
 
-    @Test("The crop stays inside the picture and keeps the output's aspect ratio")
+    @Test("The crop keeps the output's aspect ratio and stays inside the picture or centered on it")
     func cropBounds() {
         forEachSeed(150) { seed, generator in
             let source = PixelSize(width: Int.random(in: 320...1920, using: &generator), height: Int.random(in: 240...1440, using: &generator))
@@ -62,8 +62,14 @@ struct AutoFramingTests {
             }
             let aspect = Double(output.width) / Double(output.height)
             for crop in crops {
-                #expect(crop.x >= 0 && crop.y >= 0, "seed \(seed): \(crop)")
-                #expect(crop.x + crop.width <= source.width && crop.y + crop.height <= source.height, "seed \(seed): \(crop) in \(source)")
+                // Along each axis: inside the picture, or larger than it and centered on it.
+                for (origin, extent, length) in [(crop.x, crop.width, source.width), (crop.y, crop.height, source.height)] {
+                    if extent <= length {
+                        #expect(origin >= 0 && origin + extent <= length, "seed \(seed): \(crop) in \(source)")
+                    } else {
+                        #expect(abs(2 * origin + extent - length) <= 2, "seed \(seed): \(crop) is not centered on \(source)")
+                    }
+                }
                 #expect(abs(Double(crop.width) - Double(crop.height) * aspect) <= 1.5, "seed \(seed): \(crop) for \(output)")
             }
         }
@@ -79,7 +85,7 @@ struct AutoFramingTests {
             #expect(Double(crop.x) <= body.minX + 1 && Double(crop.x + crop.width) >= body.maxX - 1, "seed \(seed): \(crop) misses \(body)")
             #expect(Double(crop.y) <= body.minY + 1, "seed \(seed): \(crop) cuts the head of \(body)")
             // A crop at an edge, or at full height because the shot did not fit, cannot place the eyes.
-            let touchesEdge = crop.y == 0 || crop.y + crop.height == Self.source.height || crop.height == 720
+            let touchesEdge = crop.y == 0 || crop.y + crop.height == Self.source.height || crop.height >= 960
             if !touchesEdge, let face = subject.face {
                 let eyes = (face.minY + face.height * 0.42) * Double(Self.source.height)
                 let share = (eyes - Double(crop.y)) / Double(crop.height)
@@ -126,11 +132,12 @@ struct AutoFramingTests {
     func holdThenRelease() throws {
         let subject = Self.person(x: 0.6, y: 0.2, width: 0.2, height: 0.35)
         var framer = AutoFramer(source: Self.source, output: Self.output)
-        let framed = try #require(Self.run(&framer, from: 0, seconds: 6) { _ in [subject] }.last)
-        let held = try #require(Self.run(&framer, from: 6, seconds: 1.0) { _ in [] }.last)
+        let framed = try #require(Self.run(&framer, from: 0, seconds: 10) { _ in [subject] }.last)
+        let held = try #require(Self.run(&framer, from: 10, seconds: 1.0) { _ in [] }.last)
         #expect(held == framed, "the composition was not held: \(framed) became \(held)")
-        let released = try #require(Self.run(&framer, from: 7, seconds: 10) { _ in [] }.last)
-        #expect(released == PixelRect(x: 0, y: 120, width: 1280, height: 720), "the full picture did not return: \(released)")
+        let released = try #require(Self.run(&framer, from: 11, seconds: 10) { _ in [] }.last)
+        // The whole 4:3 picture in a 16:9 crop, with even margins at the sides.
+        #expect(released.height == 960 && released.y == 0 && abs(2 * released.x + released.width - 1280) <= 2, "the full picture did not return: \(released)")
     }
 
     @Test("Small movements of a framed person do not move the crop")
@@ -199,8 +206,14 @@ struct AutoFramingTests {
             }
         }
         #expect(allRed)
+        // A rectangle reaching past the right edge: the part outside is black.
+        try FrameCropper.crop(source, to: PixelRect(x: 160, y: 10, width: 80, height: 80), into: target)
+        try target.withLockedBase(readOnly: true) { (base, rowBytes) throws(VideoError) in
+            let row = base.advanced(by: 80 * rowBytes).assumingMemoryBound(to: UInt8.self)
+            #expect(row[10 * 4 + 2] > 247 && row[150 * 4] == 0 && row[150 * 4 + 2] == 0 && row[150 * 4 + 3] == 255)
+        }
         #expect(throws: VideoError.cropOutOfBounds) {
-            try FrameCropper.crop(source, to: PixelRect(x: 150, y: 0, width: 80, height: 80), into: target)
+            try FrameCropper.crop(source, to: PixelRect(x: 300, y: 0, width: 80, height: 80), into: target)
         }
     }
 
@@ -238,13 +251,14 @@ struct AutoFramingTests {
         #expect((heights[.upperBody] ?? 0) > (heights[.headAndShoulders] ?? 0))
     }
 
-    @Test("A face too near the picture's bottom for the shot leaves the picture at full height")
+    @Test("A face too near the picture's bottom for the shot leaves the whole picture in view")
     func shotDoesNotFit() throws {
         let face = NormalizedRect(x: 0.45, y: 0.78, width: 0.1, height: 0.15)
         let subject = FramingSubject(body: NormalizedRect(x: 0.4, y: 0.72, width: 0.2, height: 0.28), face: face)
         var framer = AutoFramer(source: Self.source, output: Self.output)
         let crop = try #require(Self.run(&framer, from: 0, seconds: 10) { _ in [subject] }.last)
-        #expect(crop.height == 720, "\(crop)")
+        // The whole picture stays in view instead of a zoomed crop that pushes the face to the bottom.
+        #expect(crop.height == 960, "\(crop)")
     }
 
     @Test("A large face keeps room for the hair above it")
