@@ -1,0 +1,64 @@
+name: LumixWebcam
+options:
+  bundleIdPrefix: com.github.thkwag
+  deploymentTarget:
+    macOS: "14.1"
+  createIntermediateGroups: true
+  developmentLanguage: ko
+settings:
+  base:
+    DEVELOPMENT_TEAM: C5FPSTH375
+    CODE_SIGN_STYLE: Automatic
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    ENABLE_HARDENED_RUNTIME: YES
+    DEAD_CODE_STRIPPING: YES
+packages:
+  LumixKit:
+    path: Packages/LumixKit
+targets:
+  LumixWebcam:
+    type: application
+    platform: macOS
+    sources:
+      - path: App
+    dependencies:
+      - target: CameraExtension
+      - package: LumixKit
+        product: LumixProtocol
+      - package: LumixKit
+        product: LumixSession
+      - package: LumixKit
+        product: LumixImageCapture
+      - package: LumixKit
+        product: LumixVideo
+      - package: LumixKit
+        product: LumixVirtualCamera
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.github.thkwag.lumixwebcam
+        PRODUCT_NAME: LUMIX Webcam
+        INFOPLIST_FILE: App/Info.plist
+        CODE_SIGN_ENTITLEMENTS: App/LumixWebcam.entitlements
+        ENABLE_APP_SANDBOX: YES
+  CameraExtension:
+    type: system-extension
+    platform: macOS
+    sources:
+      - path: CameraExtension
+    dependencies:
+      - package: LumixKit
+        product: LumixProtocol
+      - package: LumixKit
+        product: LumixVideo
+      - package: LumixKit
+        product: LumixVirtualCamera
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.github.thkwag.lumixwebcam.CameraExtension
+        PRODUCT_NAME: com.github.thkwag.lumixwebcam.CameraExtension
+        INFOPLIST_FILE: CameraExtension/Info.plist
+        CODE_SIGN_ENTITLEMENTS: CameraExtension/CameraExtension.entitlements
+        ENABLE_APP_SANDBOX: YES
+        SKIP_INSTALL: YES
