@@ -11,7 +11,10 @@
 // The app's windows come to the front for about ten seconds per language. The terminal running
 // the check needs the Accessibility and Screen Recording permissions. Quit LUMIX Webcam first.
 //
-// Usage: swift scripts/check-window-layout.swift <LUMIX Webcam.app> [language ...]
+// With --screenshots, each window is also saved with its shadow, and the menu bar menu as well, as
+// <directory>/<language>-<window>.png.
+//
+// Usage: swift scripts/check-window-layout.swift <LUMIX Webcam.app> [--screenshots <directory>] [language ...]
 // Exit status 0 means no window had a finding.
 
 import AppKit
@@ -20,7 +23,20 @@ import Foundation
 import Vision
 
 let appURL = URL(fileURLWithPath: CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "")
-let languages = CommandLine.arguments.count > 2 ? Array(CommandLine.arguments.dropFirst(2)) : ["en", "ko", "ja"]
+var screenshots: URL?
+var requestedLanguages: [String] = []
+var argumentIndex = 2
+while argumentIndex < CommandLine.arguments.count {
+    let argument = CommandLine.arguments[argumentIndex]
+    if argument == "--screenshots", argumentIndex + 1 < CommandLine.arguments.count {
+        screenshots = URL(fileURLWithPath: CommandLine.arguments[argumentIndex + 1], isDirectory: true)
+        argumentIndex += 2
+    } else {
+        requestedLanguages.append(argument)
+        argumentIndex += 1
+    }
+}
+let languages = requestedLanguages.isEmpty ? ["en", "ko", "ja"] : requestedLanguages
 let captures = FileManager.default.temporaryDirectory.appendingPathComponent("lumix-window-layout-\(getpid())")
 let recognitionLanguages = ["en": "en-US", "ko": "ko-KR", "ja": "ja-JP"]
 
@@ -130,6 +146,15 @@ func windowNumber(pid: pid_t, frame wanted: CGRect) -> CGWindowID? {
     return nil
 }
 
+/// Captures one window by its number; `shadow` keeps the window's shadow, as a screenshot shows it.
+func capture(window number: CGWindowID, to file: URL, shadow: Bool) throws {
+    let capture = Process()
+    capture.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
+    capture.arguments = ["-x"] + (shadow ? [] : ["-o"]) + ["-l\(number)", file.path]
+    try capture.run()
+    capture.waitUntilExit()
+}
+
 func recognizedLines(in image: CGImage, language: String) -> [String] {
     let request = VNRecognizeTextRequest()
     request.recognitionLevel = .accurate
@@ -188,12 +213,11 @@ func check(window: AXUIElement, pid: pid_t, name: String, language: String, anch
         return
     }
     let image = captures.appendingPathComponent("\(language)-\(name).png")
-    let capture = Process()
-    capture.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
-    capture.arguments = ["-x", "-o", "-l\(number)", image.path]
     do {
-        try capture.run()
-        capture.waitUntilExit()
+        try capture(window: number, to: image, shadow: false)
+        if let directory = screenshots {
+            try capture(window: number, to: directory.appendingPathComponent("\(language)-\(name).png"), shadow: true)
+        }
     } catch {
         findings.append("\(place): capture failed: \(error)")
         return
@@ -278,6 +302,14 @@ func run(language: String) {
     }
     AXUIElementPerformAction(item, kAXPressAction as CFString)
     wait(0.5)
+    if let directory = screenshots {
+        // The open menu is the app's only window above the normal window level.
+        let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] ?? []
+        let menu = list.first { ($0[kCGWindowOwnerPID as String] as? pid_t) == process.processIdentifier && (($0[kCGWindowLayer as String] as? Int) ?? 0) > 0 }
+        if let number = menu?[kCGWindowNumber as String] as? CGWindowID {
+            try? capture(window: number, to: directory.appendingPathComponent("\(language)-menu.png"), shadow: true)
+        }
+    }
     let settingsTitle = localized("Settings…")
     guard let menuItem = descendants(item, where: { role($0) == kAXMenuItemRole && title($0) == settingsTitle }).first else {
         findings.append("[\(language)] menu item \"\(settingsTitle)\" not found")
@@ -325,6 +357,9 @@ guard AXIsProcessTrusted(), CGPreflightScreenCaptureAccess() else {
     exit(2)
 }
 try? FileManager.default.createDirectory(at: captures, withIntermediateDirectories: true)
+if let directory = screenshots {
+    try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+}
 for language in languages {
     run(language: language)
 }
