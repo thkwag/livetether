@@ -1,6 +1,8 @@
-
 # Planning documents are kept private
 /.plans/
+
+# Project instructions for coding agents are kept private
+/CLAUDE.md
 
 # macOS
 .DS_Store
