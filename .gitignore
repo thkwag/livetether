@@ -1,4 +1,7 @@
 
+# Planning documents are kept private
+/.plans/
+
 # macOS
 .DS_Store
 
