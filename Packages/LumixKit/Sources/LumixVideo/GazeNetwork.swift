@@ -60,10 +60,15 @@ public final class GazeNetwork: @unchecked Sendable {
     public static let height = 48
     public static let width = 64
 
-    public struct Output {
+    public struct Output: Sendable {
         /// height × width × 2, interleaved.
         public let flow: [Float]
         public let light: [Float]
+
+        public init(flow: [Float], light: [Float]) {
+            self.flow = flow
+            self.light = light
+        }
     }
 
     // `MPSGraph.run` is thread-safe for a graph that is not changed after it is built.

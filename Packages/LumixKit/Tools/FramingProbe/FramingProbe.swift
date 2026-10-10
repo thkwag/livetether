@@ -14,7 +14,7 @@ import LumixVirtualCamera
 ///
 /// With --write <file>, the framed pictures are also written to a movie file.
 ///
-/// Usage: `lumix-framing-probe <video> [--size 1920x1080] [--no-sink] [--write <file>]`
+/// Usage: `lumix-framing-probe <video> [--size 1920x1080] [--shot headAndShoulders|upperBody] [--no-sink] [--write <file>]`
 @main
 struct FramingProbe {
     static func main() async {
@@ -27,6 +27,11 @@ struct FramingProbe {
             if parts.count == 2 { output = PixelSize(width: parts[0], height: parts[1]) }
             arguments.removeSubrange(index...(index + 1))
         }
+        var parameters = FramingParameters()
+        if let index = arguments.firstIndex(of: "--shot"), index + 1 < arguments.count {
+            parameters.shot = FramingShot(rawValue: arguments[index + 1]) ?? .headAndShoulders
+            arguments.removeSubrange(index...(index + 1))
+        }
         var writeURL: URL?
         if let index = arguments.firstIndex(of: "--write"), index + 1 < arguments.count {
             writeURL = URL(fileURLWithPath: arguments[index + 1])
@@ -37,14 +42,14 @@ struct FramingProbe {
             exit(2)
         }
         do {
-            try await run(URL(fileURLWithPath: path), output: output, feedsSink: feedsSink, writeURL: writeURL)
+            try await run(URL(fileURLWithPath: path), output: output, feedsSink: feedsSink, writeURL: writeURL, parameters: parameters)
         } catch {
             print("Framing probe failed: \(error)")
             exit(1)
         }
     }
 
-    static func run(_ url: URL, output: PixelSize, feedsSink: Bool, writeURL: URL?) async throws {
+    static func run(_ url: URL, output: PixelSize, feedsSink: Bool, writeURL: URL?, parameters: FramingParameters) async throws {
         let movie = try writeURL.map { try VideoFileWriter(url: $0, size: CGSize(width: output.width, height: output.height)) }
         let asset = AVURLAsset(url: url)
         guard let track = try await asset.loadTracks(withMediaType: .video).first else {
@@ -82,7 +87,7 @@ struct FramingProbe {
             let time = CMSampleBufferGetPresentationTimeStamp(sample).seconds
             let source = picture.pixelSize
             if framer?.source != source {
-                framer = AutoFramer(source: source, output: output)
+                framer = AutoFramer(source: source, output: output, parameters: parameters)
             }
             if time - lastDetection >= 0.2 {
                 let before = clock.now

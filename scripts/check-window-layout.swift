@@ -180,6 +180,16 @@ func recognizedLines(in image: CGImage, language: String) -> [String] {
     return (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
 }
 
+func enlarged(_ image: CGImage, by factor: Int) -> CGImage {
+    guard let context = CGContext(
+        data: nil, width: image.width * factor, height: image.height * factor, bitsPerComponent: 8, bytesPerRow: 0,
+        space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+    ) else { return image }
+    context.interpolationQuality = .high
+    context.draw(image, in: CGRect(x: 0, y: 0, width: image.width * factor, height: image.height * factor))
+    return context.makeImage() ?? image
+}
+
 /// Text recognition reads an ellipsis as "…", "..." or a run of dots such as "•··".
 func endsInEllipsis(_ line: String) -> Bool {
     let dots: Set<Character> = [".", "…", "·", "•", "∙", "⋅", "・", "･", "⋯"]
@@ -245,10 +255,13 @@ func check(window: AXUIElement, pid: pid_t, name: String, language: String, anch
 /// Reads the captures: every text must show nearly all of its characters, and no line may end in an ellipsis.
 func analyze(_ sample: WindowSample) {
     guard let source = CGImageSourceCreateWithURL(sample.image as CFURL, nil),
-          let picture = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
+          let captured = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
         findings.append("\(sample.place): capture cannot be read")
         return
     }
+    // A window on a display without Retina scaling is captured at one pixel per point, where text
+    // recognition misreads small text; read such captures enlarged to two pixels per point.
+    let picture = Double(captured.width) < sample.frame.width * 1.5 ? enlarged(captured, by: 2) : captured
     let scale = CGFloat(picture.width) / sample.frame.width
     let whole = recognizedLines(in: picture, language: sample.language)
     let wholeText = squeezed(whole.joined())

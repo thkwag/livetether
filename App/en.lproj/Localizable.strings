@@ -76,3 +76,6 @@
 "The model description is missing from this build." = "The model description is missing from this build.";
 "About 6 MB is downloaded from github.com/chihfanhsu/gaze_correction. The weights may be used for non-commercial purposes only. Download only if your use is non-commercial." = "About 6 MB is downloaded from github.com/chihfanhsu/gaze_correction. The weights may be used for non-commercial purposes only. Download only if your use is non-commercial.";
 "Eye Contact uses the gaze model of \"Look at Me! Correcting Eye Gaze in Live Video Communication\" (Hsu et al., 2019). Its code and weights are published under the BSD 3-Clause license; the weights were trained on data offered for non-commercial use only. LUMIX Webcam does not include them: they are downloaded from the authors' repository when you ask." = "Eye Contact uses the gaze model of \"Look at Me! Correcting Eye Gaze in Live Video Communication\" (Hsu et al., 2019). Its code and weights are published under the BSD 3-Clause license; the weights were trained on data offered for non-commercial use only. LUMIX Webcam does not include them: they are downloaded from the authors' repository when you ask.";
+"Shot" = "Shot";
+"Head and shoulders" = "Head and shoulders";
+"Upper body" = "Upper body";

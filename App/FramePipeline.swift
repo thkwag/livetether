@@ -26,6 +26,7 @@ final class FramePipeline: Sendable {
 
     private struct Framing {
         var enabled = false
+        var parameters = FramingParameters()
         var output: PixelSize?
         var framer: AutoFramer?
         var detecting = false
@@ -69,9 +70,10 @@ final class FramePipeline: Sendable {
         }
     }
 
-    func setAutoFraming(_ enabled: Bool) {
+    func setAutoFraming(_ enabled: Bool, shot: FramingShot) {
         framing.withLock { state in
             state.enabled = enabled
+            state.parameters.shot = shot
             state.framer = nil
         }
     }
@@ -131,7 +133,7 @@ final class FramePipeline: Sendable {
         let source = picture.pixelSize
         let plan = framing.withLock { state -> (rect: PixelRect, output: PixelSize, detect: Bool)? in
             guard state.enabled, let output = state.output else { return nil }
-            var framer = state.framer.flatMap { $0.source == source ? $0 : nil } ?? AutoFramer(source: source, output: output)
+            var framer = state.framer.flatMap { $0.source == source ? $0 : nil } ?? AutoFramer(source: source, output: output, parameters: state.parameters)
             let rect = framer.crop(at: now)
             state.framer = framer
             let detect = !state.detecting && state.lastDetection.map { now - $0 >= Self.detectionInterval } ?? true

@@ -1,6 +1,7 @@
 import Foundation
 import LumixProtocol
 import LumixSession
+import LumixVideo
 import Observation
 
 /// The user's preferences, kept in the app's defaults.
@@ -13,6 +14,7 @@ final class AppSettings {
         static let setupGuideCompleted = "setupGuideCompleted"
         static let autoFramingEnabled = "autoFramingEnabled"
         static let eyeContactEnabled = "eyeContactEnabled"
+        static let framingShot = "framingShot"
     }
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -37,6 +39,11 @@ final class AppSettings {
         didSet { defaults.set(eyeContactEnabled, forKey: Key.eyeContactEnabled) }
     }
 
+    /// How much of a person the automatic framing shows.
+    var framingShot: FramingShot {
+        didSet { defaults.set(framingShot.rawValue, forKey: Key.framingShot) }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         let storedIDs = defaults.array(forKey: Key.productIDs) as? [Int]
@@ -45,6 +52,7 @@ final class AppSettings {
         setupGuideCompleted = defaults.bool(forKey: Key.setupGuideCompleted)
         autoFramingEnabled = defaults.bool(forKey: Key.autoFramingEnabled)
         eyeContactEnabled = defaults.bool(forKey: Key.eyeContactEnabled)
+        framingShot = defaults.string(forKey: Key.framingShot).flatMap(FramingShot.init(rawValue:)) ?? .headAndShoulders
         preferredSizes = loadPreferredSizes()
     }
 

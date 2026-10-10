@@ -68,7 +68,7 @@ The menu bar icon opens a menu with the camera status, Auto Framing, Eye Contact
 | Tab | Settings |
 | --- | --- |
 | General | Install or uninstall the camera extension, open LUMIX Webcam at login |
-| Camera | The live-view size the camera sends (Automatic picks the largest size at 30 fps), Auto Framing, Eye Contact, frame statistics |
+| Camera | The live-view size the camera sends (Automatic picks the largest size at 30 fps), Auto Framing and its shot (head and shoulders, or upper body), Eye Contact, frame statistics |
 | Advanced | The USB product IDs of the cameras LUMIX Webcam uses (default `0x2382`) |
 
 <p align="center">

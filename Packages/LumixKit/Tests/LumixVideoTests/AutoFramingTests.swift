@@ -78,7 +78,8 @@ struct AutoFramingTests {
             let body = Self.pixels(subject.body)
             #expect(Double(crop.x) <= body.minX + 1 && Double(crop.x + crop.width) >= body.maxX - 1, "seed \(seed): \(crop) misses \(body)")
             #expect(Double(crop.y) <= body.minY + 1, "seed \(seed): \(crop) cuts the head of \(body)")
-            let touchesEdge = crop.y == 0 || crop.y + crop.height == Self.source.height
+            // A crop at an edge, or at full height because the shot did not fit, cannot place the eyes.
+            let touchesEdge = crop.y == 0 || crop.y + crop.height == Self.source.height || crop.height == 720
             if !touchesEdge, let face = subject.face {
                 let eyes = (face.minY + face.height * 0.42) * Double(Self.source.height)
                 let share = (eyes - Double(crop.y)) / Double(crop.height)
@@ -213,5 +214,47 @@ struct AutoFramingTests {
         #expect(gray.pixelSize == PixelSize(width: 320, height: 240))
         #expect(CVPixelBufferGetPixelFormatType(gray) == kCVPixelFormatType_OneComponent8)
         #expect(try PersonDetector().detect(in: picture).isEmpty)
+    }
+
+    @Test("The shot sets the crop's height from the face: 3.6 faces for head and shoulders, 5.5 for upper body")
+    func shotSize() throws {
+        // A small face high in the picture, with no body found: the body box is only estimated.
+        let face = NormalizedRect(x: 0.45, y: 0.2, width: 0.1, height: 0.12)
+        let subject = FramingSubject(body: NormalizedRect(x: 0.4, y: 0.15, width: 0.2, height: 0.3), face: face)
+        var heights: [FramingShot: Int] = [:]
+        for shot in FramingShot.allCases {
+            var parameters = FramingParameters()
+            parameters.shot = shot
+            var framer = AutoFramer(source: Self.source, output: Self.output, parameters: parameters)
+            let crop = try #require(Self.run(&framer, from: 0, seconds: 10) { _ in [subject] }.last)
+            let expected = face.height * Double(Self.source.height) * shot.faceHeights
+            #expect(abs(Double(crop.height) - expected) <= 2, "\(shot): \(crop.height) rows, expected \(expected)")
+            let faceX = face.midX * Double(Self.source.width), faceTop = face.minY * Double(Self.source.height)
+            #expect(Double(crop.x) < faceX && Double(crop.x + crop.width) > faceX && Double(crop.y) <= faceTop, "\(shot): \(crop)")
+            let hairTop = faceTop - face.height * Double(Self.source.height) * AutoFramer.hairShare
+            #expect(crop.y == 0 || Double(crop.y) <= hairTop + 1, "\(shot): \(crop) cuts the hair above \(hairTop)")
+            heights[shot] = crop.height
+        }
+        #expect((heights[.upperBody] ?? 0) > (heights[.headAndShoulders] ?? 0))
+    }
+
+    @Test("A face too near the picture's bottom for the shot leaves the picture at full height")
+    func shotDoesNotFit() throws {
+        let face = NormalizedRect(x: 0.45, y: 0.78, width: 0.1, height: 0.15)
+        let subject = FramingSubject(body: NormalizedRect(x: 0.4, y: 0.72, width: 0.2, height: 0.28), face: face)
+        var framer = AutoFramer(source: Self.source, output: Self.output)
+        let crop = try #require(Self.run(&framer, from: 0, seconds: 10) { _ in [subject] }.last)
+        #expect(crop.height == 720, "\(crop)")
+    }
+
+    @Test("A large face keeps room for the hair above it")
+    func hairRoom() throws {
+        // A close-up: the face is 40% of the picture's height, so the crop falls back to full height.
+        let face = NormalizedRect(x: 0.35, y: 0.25, width: 0.3, height: 0.4)
+        let subject = FramingSubject(body: NormalizedRect(x: 0.25, y: 0.2, width: 0.5, height: 0.8), face: face)
+        var framer = AutoFramer(source: Self.source, output: Self.output)
+        let crop = try #require(Self.run(&framer, from: 0, seconds: 10) { _ in [subject] }.last)
+        let hairTop = (face.minY - face.height * AutoFramer.hairShare) * Double(Self.source.height)
+        #expect(Double(crop.y) <= hairTop + 1, "\(crop) cuts the hair above \(hairTop)")
     }
 }

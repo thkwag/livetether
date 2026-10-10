@@ -1,5 +1,6 @@
 import LumixProtocol
 import LumixSession
+import LumixVideo
 import SwiftUI
 
 /// The settings window. Every tab is laid out in plain stacks rather than a scrolling form, so the
@@ -109,6 +110,17 @@ struct CameraSettings: View {
                     ))
                     .toggleStyle(.switch)
                     .labelsHidden()
+                }
+                LabeledContent("Shot") {
+                    Picker("Shot", selection: Binding(
+                        get: { model.settings.framingShot },
+                        set: { model.setFramingShot($0) }
+                    )) {
+                        Text("Head and shoulders").tag(FramingShot.headAndShoulders)
+                        Text("Upper body").tag(FramingShot.upperBody)
+                    }
+                    .labelsHidden()
+                    .fixedSize()
                 }
                 SettingsNote("Keeps the people in front of the camera in the middle of the picture and follows them as they move, giving room on the side they look to. People are found on this Mac only; no picture is stored or sent.")
             }

@@ -190,6 +190,10 @@ struct EyeContactProbe {
         var corrected = 0
         var findTime = 0.0
         var correctTime = 0.0
+        var previous: (original: CVPixelBuffer, output: CVPixelBuffer)?
+        var older: (original: CVPixelBuffer, output: CVPixelBuffer)?
+        var jitter: [Double] = []
+        var flicker: [Double] = []
         while let sample = output.copyNextSampleBuffer(), let picture = CMSampleBufferGetImageBuffer(sample) {
             frames += 1
             let start = clock.now
@@ -197,7 +201,8 @@ struct EyeContactProbe {
             let found_at = clock.now
             findTime += milliseconds(found_at - start)
             faces += found.count
-            let keep = save != nil && frames % 150 == 0 && !found.isEmpty ? try copy(picture) : nil
+            let original = try copy(picture)
+            let keep: CVPixelBuffer? = save != nil && frames % 150 == 0 && !found.isEmpty ? original : nil
             for face in found {
                 let strength = EyeContactCorrector.strength(for: face)
                 if strength > 0 { corrected += 1 }
@@ -207,6 +212,15 @@ struct EyeContactProbe {
                 saveComparison(before: keep, after: picture, face: face, to: save.appendingPathComponent(String(format: "frame-%05d.png", frames)))
             }
             correctTime += milliseconds(clock.now - found_at)
+            // Flicker: how much what the correction changes differs from one frame to the next.
+            if let face = found.first, let last = previous, let region = eyeRegion(face, size: picture.pixelSize) {
+                flicker.append(correctionChange(output: picture, original: original, lastOutput: last.output, lastOriginal: last.original, region))
+            }
+            if let face = found.first, let last = previous, let first = older, let region = eyeRegion(face, size: picture.pixelSize) {
+                jitter.append(secondDifference(picture, last.output, first.output, region) - secondDifference(original, last.original, first.original, region))
+            }
+            older = previous
+            previous = (original, try copy(picture))
             if let write {
                 if movie == nil {
                     movie = try VideoFileWriter(url: write, size: CGSize(width: CVPixelBufferGetWidth(picture), height: CVPixelBufferGetHeight(picture)))
@@ -216,6 +230,16 @@ struct EyeContactProbe {
         }
         await movie?.finish()
         print("frames \(frames), faces \(faces), faces corrected \(corrected)")
+        if !jitter.isEmpty {
+            let sorted = jitter.sorted()
+            print(String(format: "added jitter in the eyes: mean %.3f, 95th percentile %.3f (second difference over frames, levels of 255)",
+                         jitter.reduce(0, +) / Double(jitter.count), sorted[sorted.count * 95 / 100]))
+        }
+        if !flicker.isEmpty {
+            let sorted = flicker.sorted()
+            print(String(format: "correction flicker in the eyes: mean %.3f, 95th percentile %.3f (levels of 255 per pixel and frame)",
+                         flicker.reduce(0, +) / Double(flicker.count), sorted[sorted.count * 95 / 100]))
+        }
         if frames > 0 {
             print(String(format: "per frame: finding landmarks %.1f ms, correcting %.1f ms", findTime / Double(frames), correctTime / Double(frames)))
         }
@@ -242,5 +266,81 @@ extension CGRect {
     /// The same rectangle measured from the bottom edge, as Core Image measures.
     func flippedFor(height: Double) -> CGRect {
         CGRect(x: minX, y: height - maxY, width: width, height: self.height)
+    }
+}
+
+extension EyeContactProbe {
+    /// The rectangle around both eyes, with half an eye length of margin.
+    static func eyeRegion(_ face: FaceForGaze, size: PixelSize) -> PixelRect? {
+        let points = face.leftEye.points + face.rightEye.points
+        let length = abs(face.leftEye.points[3].x - face.leftEye.points[0].x)
+        let minX = max(0, Int(points.map(\.x).min()! - length / 2)), maxX = min(size.width, Int(points.map(\.x).max()! + length / 2))
+        let minY = max(0, Int(points.map(\.y).min()! - length / 2)), maxY = min(size.height, Int(points.map(\.y).max()! + length / 2))
+        guard maxX > minX, maxY > minY else { return nil }
+        return PixelRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
+    }
+
+    /// The mean absolute difference of two pictures inside a rectangle, over the three colour channels.
+    static func meanDifference(_ a: CVPixelBuffer, _ b: CVPixelBuffer, _ rect: PixelRect) -> Double {
+        CVPixelBufferLockBaseAddress(a, .readOnly)
+        CVPixelBufferLockBaseAddress(b, .readOnly)
+        defer {
+            CVPixelBufferUnlockBaseAddress(a, .readOnly)
+            CVPixelBufferUnlockBaseAddress(b, .readOnly)
+        }
+        let pa = CVPixelBufferGetBaseAddress(a)!.assumingMemoryBound(to: UInt8.self)
+        let pb = CVPixelBufferGetBaseAddress(b)!.assumingMemoryBound(to: UInt8.self)
+        let ra = CVPixelBufferGetBytesPerRow(a), rb = CVPixelBufferGetBytesPerRow(b)
+        var total = 0
+        for y in rect.y..<(rect.y + rect.height) {
+            for x in rect.x..<(rect.x + rect.width) {
+                for c in 0..<3 { total += abs(Int(pa[y * ra + x * 4 + c]) - Int(pb[y * rb + x * 4 + c])) }
+            }
+        }
+        return Double(total) / Double(rect.width * rect.height * 3)
+    }
+}
+
+extension EyeContactProbe {
+    /// The mean over the rectangle of |(output − original) − (last output − last original)|: zero when
+    /// the correction changes the eyes the same way in both frames.
+    static func correctionChange(output: CVPixelBuffer, original: CVPixelBuffer, lastOutput: CVPixelBuffer, lastOriginal: CVPixelBuffer, _ rect: PixelRect) -> Double {
+        let buffers = [output, original, lastOutput, lastOriginal]
+        buffers.forEach { CVPixelBufferLockBaseAddress($0, .readOnly) }
+        defer { buffers.forEach { CVPixelBufferUnlockBaseAddress($0, .readOnly) } }
+        let bases = buffers.map { CVPixelBufferGetBaseAddress($0)!.assumingMemoryBound(to: UInt8.self) }
+        let rows = buffers.map { CVPixelBufferGetBytesPerRow($0) }
+        var total = 0
+        for y in rect.y..<(rect.y + rect.height) {
+            for x in rect.x..<(rect.x + rect.width) {
+                for c in 0..<3 {
+                    func value(_ i: Int) -> Int { Int(bases[i][y * rows[i] + x * 4 + c]) }
+                    total += abs((value(0) - value(1)) - (value(2) - value(3)))
+                }
+            }
+        }
+        return Double(total) / Double(rect.width * rect.height * 3)
+    }
+}
+
+extension EyeContactProbe {
+    /// The mean over the rectangle of |a − 2b + c| for three consecutive frames: large where values
+    /// swing back and forth, small where they stay or change steadily.
+    static func secondDifference(_ a: CVPixelBuffer, _ b: CVPixelBuffer, _ c: CVPixelBuffer, _ rect: PixelRect) -> Double {
+        let buffers = [a, b, c]
+        buffers.forEach { CVPixelBufferLockBaseAddress($0, .readOnly) }
+        defer { buffers.forEach { CVPixelBufferUnlockBaseAddress($0, .readOnly) } }
+        let bases = buffers.map { CVPixelBufferGetBaseAddress($0)!.assumingMemoryBound(to: UInt8.self) }
+        let rows = buffers.map { CVPixelBufferGetBytesPerRow($0) }
+        var total = 0
+        for y in rect.y..<(rect.y + rect.height) {
+            for x in rect.x..<(rect.x + rect.width) {
+                for ch in 0..<3 {
+                    func value(_ i: Int) -> Int { Int(bases[i][y * rows[i] + x * 4 + ch]) }
+                    total += abs(value(0) - 2 * value(1) + value(2))
+                }
+            }
+        }
+        return Double(total) / Double(rect.width * rect.height * 3)
     }
 }

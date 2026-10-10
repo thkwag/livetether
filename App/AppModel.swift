@@ -46,7 +46,7 @@ final class AppModel {
         legacyPluginInstalled = FileManager.default.fileExists(atPath: Self.legacyPluginPath)
 
         link.preferredSize = { [weak settings] model in settings?.preferredSize(for: model) }
-        pipeline.setAutoFraming(settings.autoFramingEnabled)
+        pipeline.setAutoFraming(settings.autoFramingEnabled, shot: settings.framingShot)
         pipeline.setEyeContact(gazeModel.corrector, enabled: settings.eyeContactEnabled)
         discovery.onEvent = { [weak self] event in self?.link.handle(event) }
         observeSourceActivity()
@@ -100,7 +100,12 @@ final class AppModel {
     /// Turns the automatic framing on or off; the next picture already follows the choice.
     func setAutoFraming(_ enabled: Bool) {
         settings.autoFramingEnabled = enabled
-        pipeline.setAutoFraming(enabled)
+        pipeline.setAutoFraming(enabled, shot: settings.framingShot)
+    }
+
+    func setFramingShot(_ shot: FramingShot) {
+        settings.framingShot = shot
+        pipeline.setAutoFraming(settings.autoFramingEnabled, shot: shot)
     }
 
     /// Whether the gaze weights have been downloaded and the correction can run.

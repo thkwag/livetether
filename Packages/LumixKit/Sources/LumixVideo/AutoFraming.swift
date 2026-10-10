@@ -53,8 +53,26 @@ public struct FramingSubject: Hashable, Sendable {
     }
 }
 
+/// How much of a person the automatic framing shows.
+public enum FramingShot: String, CaseIterable, Sendable {
+    /// The head and the shoulders.
+    case headAndShoulders
+    /// The head and the upper body down to the chest.
+    case upperBody
+
+    /// The crop's height as a multiple of the face's height.
+    public var faceHeights: Double {
+        switch self {
+        case .headAndShoulders: 3.6
+        case .upperBody: 5.5
+        }
+    }
+}
+
 /// How the automatic framing composes and moves the crop.
 public struct FramingParameters: Sendable, Equatable {
+    /// How much of a person the crop shows; sized from the face, which is found more reliably than the body.
+    public var shot = FramingShot.headAndShoulders
     /// The crop is never smaller than the full picture divided by this.
     public var maximumZoom = 2.0
     /// The people fill at most this share of the crop's height and width.
@@ -129,6 +147,10 @@ public struct AutoFramer: Sendable {
 
     private var aspect: Double { Double(output.width) / Double(output.height) }
 
+    /// Room kept above a face box for the forehead and hair, as a share of the face's height: the
+    /// box Vision reports starts near the eyebrows.
+    static let hairShare = 0.6
+
     /// Records the people found in the picture taken at `time`.
     public mutating func observe(_ subjects: [FramingSubject], at time: Double) {
         var matched = Set<Int>()
@@ -189,17 +211,27 @@ public struct AutoFramer: Sendable {
 
         let full = Self.fullComposition(source: source, output: output)
         var cropHeight = max(box.height / parameters.subjectHeightShare, box.width / parameters.subjectWidthShare / aspect)
+        // With the faces known, the shot decides the size: the largest face sets the crop's height,
+        // and the crop still holds every face with room around it.
+        let faces = members.compactMap(\.face)
+        // The box the crop centers on and keeps inside: the faces when every person's face is known.
+        var anchor = box
+        if faces.count == members.count, let largest = faces.map(\.height).max() {
+            let faceBox = faces.dropFirst().reduce(faces[0]) { $0.union($1) }
+            anchor = (x: faceBox.minX * width, y: faceBox.minY * height, width: faceBox.width * width, height: faceBox.height * height)
+            cropHeight = max(largest * height * parameters.shot.faceHeights, anchor.width / parameters.subjectWidthShare / aspect)
+        }
         cropHeight = min(max(cropHeight, full.height / parameters.maximumZoom), full.height)
         let cropWidth = cropHeight * aspect
 
-        var centerX = box.x + box.width / 2
+        var centerX = anchor.x + anchor.width / 2
         let single = members.count == 1 ? members[0] : nil
         if let facing = single?.facing, abs(facing) > parameters.facingDeadZone {
             let strength = min(1, (abs(facing) - parameters.facingDeadZone) / (1 - parameters.facingDeadZone))
             centerX += (facing > 0 ? 1 : -1) * strength * parameters.lookRoom * cropWidth
         }
         // Keep the people inside the crop when the look room would push them out.
-        centerX = min(max(centerX, box.x + box.width - cropWidth / 2), box.x + cropWidth / 2)
+        centerX = min(max(centerX, anchor.x + anchor.width - cropWidth / 2), anchor.x + cropWidth / 2)
 
         let eyeY: Double
         if let face = single?.face {
@@ -207,9 +239,17 @@ public struct AutoFramer: Sendable {
         } else {
             eyeY = box.y + box.height * 0.15
         }
-        var top = eyeY - parameters.eyeLine * cropHeight
-        top = min(top, box.y)
-        return Composition(centerX: centerX, centerY: top + cropHeight / 2, height: cropHeight)
+        // A face box starts at the forehead; the hair above it needs room too.
+        let headTop = faces.count == members.count ? anchor.y - anchor.height * Self.hairShare : anchor.y
+        func top(for cropHeight: Double) -> Double {
+            min(eyeY - parameters.eyeLine * cropHeight, headTop)
+        }
+        // When the picture ends too soon below the faces for the shot, a zoomed crop would only push
+        // the faces to its bottom edge; keep the largest crop instead, placed by the same rules.
+        if top(for: cropHeight) + cropHeight > height + 0.5, cropHeight < full.height {
+            return Composition(centerX: centerX, centerY: top(for: full.height) + full.height / 2, height: full.height)
+        }
+        return Composition(centerX: centerX, centerY: top(for: cropHeight) + cropHeight / 2, height: cropHeight)
     }
 
     private func isClose(_ a: Composition, _ b: Composition) -> Bool {

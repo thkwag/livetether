@@ -2,6 +2,7 @@ import Accelerate
 import CoreVideo
 import Foundation
 import Vision
+import os
 
 /// A point in picture pixels, origin at the top-left corner.
 public struct PixelPoint: Hashable, Sendable {
@@ -99,6 +100,32 @@ struct EyePatch: Equatable {
             && a.anchors.map { [$0.x, $0.y] } == b.anchors.map { [$0.x, $0.y] }
     }
 
+    /// The patch for `eye`, keeping `previous`'s rectangle when the new one differs from it by at most
+    /// a pixel on every side: whole-pixel rounding otherwise makes the patch, and the corrected eye,
+    /// jump by a pixel from frame to frame.
+    init?(eye: EyeOutline, mirrored: Bool, keeping previous: EyePatch?) {
+        guard let fresh = EyePatch(eye: eye, mirrored: mirrored) else { return nil }
+        guard let previous,
+              abs(fresh.x - previous.x) <= 1, abs(fresh.y - previous.y) <= 1,
+              abs(fresh.width - previous.width) <= 1, abs(fresh.height - previous.height) <= 1 else {
+            self = fresh
+            return
+        }
+        self.init(eye: eye, mirrored: mirrored, x: previous.x, y: previous.y, width: previous.width, height: previous.height)
+    }
+
+    private init(eye: EyeOutline, mirrored: Bool, x: Int, y: Int, width: Int, height: Int) {
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        let scaleX = Double(Self.width) / Double(width)
+        let scaleY = Double(Self.height) / Double(height)
+        anchors = eye.modelOrder(mirrored: mirrored).map { point in
+            (Int((point.x - Double(x)) * scaleX), Int((point.y - Double(y)) * scaleY))
+        }
+    }
+
     /// The rectangle the gaze model was trained on: centered between the corners, one and a half
     /// eye lengths wide and three quarters of that high, with seven twelfths of it above the center.
     init?(eye: EyeOutline, mirrored: Bool) {
@@ -190,8 +217,34 @@ public enum GazeWarp {
 ///
 /// The networks were trained on faces looking straight at the screen, so the correction is applied
 /// in full only while the face points at the camera and fades out as it turns away.
+///
+/// A face's landmarks jitter by a pixel or two from frame to frame, and each frame's correction
+/// follows that jitter, which shows as trembling eyelids. The corrector therefore follows each face
+/// over frames: the landmarks and the network's flow and light weights are averaged over time, and
+/// a sudden move of the eyes resets the average so the correction never lags behind a real move.
 public final class EyeContactCorrector: Sendable {
+    /// One face followed over frames.
+    struct Track {
+        var leftEye: [PixelPoint]
+        var rightEye: [PixelPoint]
+        var output: [String: GazeNetwork.Output] = [:]
+        var patches: [String: EyePatch] = [:]
+        var lastFrame: Int
+    }
+
+    private struct State {
+        var tracks: [Track] = []
+        var frame = 0
+    }
+
+    /// The share of a new frame in the running average of the landmarks and of the network's output.
+    public static let landmarkWeight = 0.2
+    public static let outputWeight: Float = 0.25
+    /// A move of the eyes farther than this share of the eye length starts the averages again.
+    public static let resetShare = 0.3
+
     private let network: GazeNetwork
+    private let state = OSAllocatedUnfairLock(initialState: State())
 
     /// The redirection angle in degrees: vertical (positive moves the gaze up), then horizontal.
     public let angle: (vertical: Float, horizontal: Float)
@@ -213,9 +266,10 @@ public final class EyeContactCorrector: Sendable {
         guard strength > 0 else { return }
         try picture.requireBGRA()
         let size = picture.pixelSize
+        let (smoothed, previous, patches, index) = follow(face)
         // The network "L" works on the eye on the picture's right, with its landmarks mirrored.
-        guard let eyeL = EyePatch(eye: face.rightEye, mirrored: true),
-              let eyeR = EyePatch(eye: face.leftEye, mirrored: false),
+        guard let eyeL = EyePatch(eye: smoothed.rightEye, mirrored: true, keeping: patches["L"]),
+              let eyeR = EyePatch(eye: smoothed.leftEye, mirrored: false, keeping: patches["R"]),
               eyeL.fits(in: size), eyeR.fits(in: size) else { return }
         try picture.withLockedBase(readOnly: false) { (base, rowBytes) throws(VideoError) in
             let imageL = Self.read(eyeL, base: base, rowBytes: rowBytes)
@@ -230,11 +284,73 @@ public final class EyeContactCorrector: Sendable {
             } catch {
                 throw .detectionFailed("Eye contact network: \(error)")
             }
-            for (patch, image, output) in [(eyeL, imageL, outputs.left), (eyeR, imageR, outputs.right)] {
+            let averaged = [
+                "L": Self.average(previous["L"], outputs.left),
+                "R": Self.average(previous["R"], outputs.right),
+            ]
+            state.withLock { state in
+                if state.tracks.indices.contains(index) {
+                    state.tracks[index].output = averaged
+                    state.tracks[index].patches = ["L": eyeL, "R": eyeR]
+                }
+            }
+            for (patch, image, output) in [(eyeL, imageL, averaged["L"]!), (eyeR, imageR, averaged["R"]!)] {
                 let corrected = GazeWarp.apply(image: image, flow: output.flow, light: output.light, height: EyePatch.height, width: EyePatch.width)
                 Self.write(corrected, into: patch, base: base, rowBytes: rowBytes, strength: Float(strength))
             }
         }
+    }
+
+    // MARK: - Following faces
+
+    /// Matches the face to the track whose eyes are nearest, averages its landmarks, and returns the
+    /// smoothed face, the track's previous network output and the track's index.
+    private func follow(_ face: FaceForGaze) -> (FaceForGaze, [String: GazeNetwork.Output], [String: EyePatch], Int) {
+        state.withLock { state in
+            state.frame += 1
+            state.tracks.removeAll { state.frame - $0.lastFrame > 15 }
+            let length = max(1, abs(face.leftEye.points[3].x - face.leftEye.points[0].x))
+            func center(_ points: [PixelPoint]) -> PixelPoint {
+                PixelPoint(x: points.map(\.x).reduce(0, +) / Double(points.count), y: points.map(\.y).reduce(0, +) / Double(points.count))
+            }
+            let here = center(face.leftEye.points + face.rightEye.points)
+            let nearest = state.tracks.indices.min { a, b in
+                Self.distance(center(state.tracks[a].leftEye + state.tracks[a].rightEye), here)
+                    < Self.distance(center(state.tracks[b].leftEye + state.tracks[b].rightEye), here)
+            }
+            if let index = nearest,
+               Self.distance(center(state.tracks[index].leftEye + state.tracks[index].rightEye), here) < length * Self.resetShare {
+                var track = state.tracks[index]
+                track.leftEye = Self.blend(track.leftEye, face.leftEye.points)
+                track.rightEye = Self.blend(track.rightEye, face.rightEye.points)
+                track.lastFrame = state.frame
+                state.tracks[index] = track
+                var smoothed = face
+                smoothed.leftEye = EyeOutline(points: track.leftEye)
+                smoothed.rightEye = EyeOutline(points: track.rightEye)
+                return (smoothed, track.output, track.patches, index)
+            }
+            if let index = nearest, Self.distance(center(state.tracks[index].leftEye + state.tracks[index].rightEye), here) < length * 2 {
+                state.tracks[index] = Track(leftEye: face.leftEye.points, rightEye: face.rightEye.points, lastFrame: state.frame)
+                return (face, [:], [:], index)
+            }
+            state.tracks.append(Track(leftEye: face.leftEye.points, rightEye: face.rightEye.points, lastFrame: state.frame))
+            return (face, [:], [:], state.tracks.count - 1)
+        }
+    }
+
+    private static func distance(_ a: PixelPoint, _ b: PixelPoint) -> Double {
+        ((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y)).squareRoot()
+    }
+
+    private static func blend(_ old: [PixelPoint], _ new: [PixelPoint]) -> [PixelPoint] {
+        zip(old, new).map { PixelPoint(x: $0.x + (($1.x - $0.x) * landmarkWeight), y: $0.y + (($1.y - $0.y) * landmarkWeight)) }
+    }
+
+    private static func average(_ old: GazeNetwork.Output?, _ new: GazeNetwork.Output) -> GazeNetwork.Output {
+        guard let old else { return new }
+        func mix(_ a: [Float], _ b: [Float]) -> [Float] { zip(a, b).map { $0 + ($1 - $0) * outputWeight } }
+        return GazeNetwork.Output(flow: mix(old.flow, new.flow), light: mix(old.light, new.light))
     }
 
     // MARK: - Pixels
@@ -271,6 +387,9 @@ public final class EyeContactCorrector: Sendable {
 
     /// Scales the corrected patch back to the eye's size and writes it, leaving the patch's edge
     /// rows and columns as they were.
+    /// Pixels over which a written patch fades into the original at its edge.
+    static let featherWidth = 5
+
     static func write(_ corrected: [Float], into patch: EyePatch, base: UnsafeMutableRawPointer, rowBytes: Int, strength: Float) {
         let bytes = base.assumingMemoryBound(to: UInt8.self)
         let scaleX = Double(EyePatch.width) / Double(patch.width)
@@ -286,13 +405,17 @@ public final class EyeContactCorrector: Sendable {
                 let x1 = min(x0 + 1, EyePatch.width - 1)
                 let fx = Float(sourceX - Double(x0))
                 let offset = (patch.y + y) * rowBytes + (patch.x + x) * 4
+                // Fade into the original over the outer rows and columns, so the patch leaves no seam.
+                let edge = min(y - EyePatch.margin.rows, patch.height - EyePatch.margin.rows - 1 - y,
+                               x - EyePatch.margin.columns, patch.width - EyePatch.margin.columns - 1 - x)
+                let weight = strength * min(1, Float(edge + 1) / Float(Self.featherWidth))
                 for channel in 0..<3 {
                     func value(_ px: Int, _ py: Int) -> Float { corrected[(py * EyePatch.width + px) * 3 + channel] }
                     let top = value(x0, y0) * (1 - fx) + value(x1, y0) * fx
                     let bottom = value(x0, y1) * (1 - fx) + value(x1, y1) * fx
                     let new = min(max((top * (1 - fy) + bottom * fy) * 255, 0), 255)
                     let old = Float(bytes[offset + channel])
-                    bytes[offset + channel] = UInt8((old + (new - old) * strength).rounded())
+                    bytes[offset + channel] = UInt8((old + (new - old) * weight).rounded())
                 }
             }
         }
