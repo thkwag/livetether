@@ -1,5 +1,6 @@
 import Foundation
 import LumixProtocol
+import LumixVirtualCamera
 import Observation
 import SystemExtensions
 
@@ -60,6 +61,20 @@ final class ExtensionInstaller: NSObject {
         submit(.deactivationRequest(forExtensionWithIdentifier: Self.extensionIdentifier, queue: .main), action: .deactivate)
     }
 
+    /// An enabled extension whose camera never appears to camera apps has not taken effect; macOS
+    /// applies it after a restart. The camera gets a few seconds to appear before saying so.
+    private func confirmDevicePresence() {
+        Task { @MainActor [weak self] in
+            for _ in 0..<10 {
+                if SinkStreamClient.isVirtualCameraPresent { return }
+                try? await Task.sleep(for: .seconds(1))
+            }
+            guard let self, self.state == .installed else { return }
+            self.log.notice("The extension is enabled but its camera did not appear")
+            self.state = .restartRequired
+        }
+    }
+
     private func submit(_ request: OSSystemExtensionRequest, action: Action) {
         pendingAction = action
         request.delegate = self
@@ -85,6 +100,9 @@ extension ExtensionInstaller: @preconcurrency OSSystemExtensionRequestDelegate {
         switch result {
         case .completed:
             state = pendingAction == .deactivate ? .notInstalled : .installed
+            if pendingAction == .activate {
+                confirmDevicePresence()
+            }
         case .willCompleteAfterReboot:
             state = .restartRequired
         @unknown default:
@@ -100,6 +118,7 @@ extension ExtensionInstaller: @preconcurrency OSSystemExtensionRequestDelegate {
     func request(_ request: OSSystemExtensionRequest, foundProperties properties: [OSSystemExtensionProperties]) {
         if let enabled = properties.first(where: { $0.isEnabled }) {
             state = .installed
+            confirmDevicePresence()
             // An app update carries a new extension; activating it replaces the installed one.
             if let bundled = Self.bundledExtensionVersion, enabled.bundleVersion != bundled, isInApplicationsFolder {
                 log.info("Installed extension \(enabled.bundleVersion, privacy: .public) differs from bundled \(bundled, privacy: .public)")

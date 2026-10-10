@@ -20,6 +20,11 @@ public enum SinkError: Error, Equatable, Sendable {
 /// The app is a CoreMediaIO client of its own virtual camera: it finds the device by UID, starts the
 /// sink stream and appends sample buffers to the stream's queue, which the extension consumes.
 public final class SinkStreamClient: @unchecked Sendable {
+    /// Whether the virtual camera device is visible to camera apps on this Mac.
+    public static var isVirtualCameraPresent: Bool {
+        CMIOProperties.devices().contains { CMIOProperties.deviceUID($0) == VirtualCameraIdentity.deviceUID }
+    }
+
     // Mutable state is guarded by `lock`; CoreMediaIO calls are made while holding it.
     private struct Connection {
         let device: CMIOObjectID
