@@ -36,6 +36,12 @@ final class ExtensionInstaller: NSObject {
         Bundle.main.bundleURL.deletingLastPathComponent().path == "/Applications"
     }
 
+    /// The build number of the extension inside this app bundle.
+    static var bundledExtensionVersion: String? {
+        let url = Bundle.main.bundleURL.appendingPathComponent("Contents/Library/SystemExtensions/\(extensionIdentifier).systemextension")
+        return Bundle(url: url)?.object(forInfoDictionaryKey: "CFBundleVersion") as? String
+    }
+
     func refresh() {
         submit(.propertiesRequest(forExtensionWithIdentifier: Self.extensionIdentifier, queue: .main), action: .inspect)
     }
@@ -92,8 +98,13 @@ extension ExtensionInstaller: @preconcurrency OSSystemExtensionRequestDelegate {
     }
 
     func request(_ request: OSSystemExtensionRequest, foundProperties properties: [OSSystemExtensionProperties]) {
-        if properties.contains(where: { $0.isEnabled }) {
+        if let enabled = properties.first(where: { $0.isEnabled }) {
             state = .installed
+            // An app update carries a new extension; activating it replaces the installed one.
+            if let bundled = Self.bundledExtensionVersion, enabled.bundleVersion != bundled, isInApplicationsFolder {
+                log.info("Installed extension \(enabled.bundleVersion, privacy: .public) differs from bundled \(bundled, privacy: .public)")
+                install()
+            }
         } else if properties.contains(where: { $0.isAwaitingUserApproval }) {
             state = .awaitingApproval
         } else {

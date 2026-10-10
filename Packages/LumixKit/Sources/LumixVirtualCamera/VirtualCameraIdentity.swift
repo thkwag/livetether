@@ -10,7 +10,8 @@ public enum VirtualCameraIdentity {
 
     public static let deviceName = "LUMIX Webcam"
     public static let modelName = "LUMIX Webcam"
-    public static let manufacturer = "Panasonic"
+    /// The independent project that provides the virtual camera, not the camera maker.
+    public static let manufacturer = "LUMIX Webcam Project"
     public static let sourceStreamName = "LUMIX Webcam Video"
     public static let sinkStreamName = "LUMIX Webcam Input"
 
