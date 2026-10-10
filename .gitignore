@@ -1,0 +1,13 @@
+
+# macOS
+.DS_Store
+
+# Xcode project is generated from project.yml by xcodegen
+/LumixWebcam.xcodeproj/
+
+# Build products
+/build/
+DerivedData/
+.build/
+.swiftpm/
+xcuserdata/
