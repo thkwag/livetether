@@ -139,3 +139,18 @@ struct LinkIndicatorMappingTests {
         #expect(LinkIndicator(phase: .waitingToRetry(camera, .communicationFailed)) == .communicationError)
     }
 }
+
+@Suite("Source activity")
+struct SourceActivityTests {
+    @Test("Activity and format survive the round trip, and inactivity is 0")
+    func roundTrip() {
+        for index in VirtualCameraFormats.all.indices {
+            let activity = SourceActivity(isActive: true, formatIndex: index)
+            #expect(SourceActivity(activity.encoded) == activity)
+            #expect(activity.encoded & 1 == 1)
+        }
+        #expect(SourceActivity(isActive: false, formatIndex: 2).encoded == 0)
+        #expect(SourceActivity(1) == SourceActivity(isActive: true, formatIndex: nil))
+        #expect(SourceActivity(1 | 0x7F << 8).formatIndex == nil)
+    }
+}

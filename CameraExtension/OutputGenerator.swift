@@ -58,7 +58,18 @@ final class OutputGenerator: @unchecked Sendable {
     }
 
     func setActiveFormatIndex(_ index: Int) {
-        queue.async { [self] in activeFormatIndex = index }
+        queue.async { [self] in
+            activeFormatIndex = index
+            if sourceClients > 0 {
+                publishActivity()
+            }
+        }
+    }
+
+    /// Publishes whether any client reads the source stream, and in which format.
+    private func publishActivity() {
+        let activity = SourceActivity(isActive: sourceClients > 0, formatIndex: activeFormatIndex)
+        sourceActive?.publish(activity.encoded)
     }
 
     // MARK: - Source stream
@@ -68,7 +79,7 @@ final class OutputGenerator: @unchecked Sendable {
             sourceClients += 1
             guard sourceClients == 1 else { return }
             startTimer()
-            sourceActive?.publish(1)
+            publishActivity()
         }
     }
 
@@ -78,7 +89,7 @@ final class OutputGenerator: @unchecked Sendable {
             guard sourceClients == 0 else { return }
             timer?.cancel()
             timer = nil
-            sourceActive?.publish(0)
+            publishActivity()
         }
     }
 

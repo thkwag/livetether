@@ -10,6 +10,10 @@ public enum VideoError: Error, Equatable, Sendable {
     case unsupportedPixelFormat(OSType)
     case contextCreationFailed
     case scaleFailed(Int)
+    /// A crop rectangle reaches outside the picture.
+    case cropOutOfBounds
+    /// Finding people in a picture failed.
+    case detectionFailed(String)
 }
 
 /// Creates IOSurface-backed 32-bit BGRA pixel buffers of one size, reusing released ones.

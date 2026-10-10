@@ -43,6 +43,7 @@ final class AppModel {
         legacyPluginInstalled = FileManager.default.fileExists(atPath: Self.legacyPluginPath)
 
         link.preferredSize = { [weak settings] model in settings?.preferredSize(for: model) }
+        pipeline.setAutoFraming(settings.autoFramingEnabled)
         discovery.onEvent = { [weak self] event in self?.link.handle(event) }
         observeSourceActivity()
         publishStatusPeriodically()
@@ -92,6 +93,12 @@ final class AppModel {
         link.restartLiveView()
     }
 
+    /// Turns the automatic framing on or off; the next picture already follows the choice.
+    func setAutoFraming(_ enabled: Bool) {
+        settings.autoFramingEnabled = enabled
+        pipeline.setAutoFraming(enabled)
+    }
+
     func applyProductIDs(_ ids: Set<Int>) {
         settings.setProductIDs(ids)
         discovery.update(filter: CameraFilter(productIDs: ids))
@@ -104,12 +111,17 @@ final class AppModel {
             let channel = try DarwinStateChannel(name: VirtualCameraIdentity.sourceActiveNotification)
             sourceActivity = channel
             sourceObservation = try channel.observe(on: .main) { [weak self] value in
-                MainActor.assumeIsolated { self?.setClientsActive(value != 0) }
+                MainActor.assumeIsolated { self?.updateSourceActivity(SourceActivity(value)) }
             }
-            setClientsActive(channel.currentValue() != 0)
+            updateSourceActivity(SourceActivity(channel.currentValue()))
         } catch {
             log.error("Observing the camera extension's activity failed: \(String(describing: error), privacy: .public)")
         }
+    }
+
+    private func updateSourceActivity(_ activity: SourceActivity) {
+        pipeline.setOutputSize(activity.format?.size ?? VirtualCameraFormats.all[VirtualCameraFormats.defaultIndex].size)
+        setClientsActive(activity.isActive)
     }
 
     private func setClientsActive(_ active: Bool) {

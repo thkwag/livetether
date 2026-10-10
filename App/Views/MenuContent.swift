@@ -16,6 +16,10 @@ struct MenuContent: View {
         if model.installer.state != .installed {
             Text(verbatim: String(localized: "Camera extension: \(StatusText.installer(model.installer.state))"))
         }
+        Toggle("Auto Framing", isOn: Binding(
+            get: { model.settings.autoFramingEnabled },
+            set: { model.setAutoFraming($0) }
+        ))
         Divider()
         Button("Settings…") {
             openSettings()

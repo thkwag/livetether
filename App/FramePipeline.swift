@@ -10,25 +10,66 @@ import os
 /// Runs on the frame pump's task, off the main thread. The sink is connected on the first picture
 /// and reconnected at most once a second after a failure; a picture that finds the sink queue full
 /// is dropped, because a newer one follows within a frame.
+///
+/// With automatic framing on, every picture is cropped around the people in it and scaled to the
+/// size the virtual camera's reader uses. People are looked for a few times a second on a
+/// separate queue, so the detection never holds up a picture.
 final class FramePipeline: Sendable {
     static let reconnectInterval: Duration = .seconds(1)
+    /// Seconds between two detections of people.
+    static let detectionInterval = 0.2
 
     private struct State {
         var lastConnectAttempt: ContinuousClock.Instant?
         var lastFailureLog: ContinuousClock.Instant?
     }
 
+    private struct Framing {
+        var enabled = false
+        var output: PixelSize?
+        var framer: AutoFramer?
+        var detecting = false
+        var lastDetection: Double?
+    }
+
+    /// A decoded picture handed to the detection queue. The pipeline never writes to a picture
+    /// after decoding it, so reading it on another queue is safe.
+    private struct PictureBox: @unchecked Sendable {
+        let picture: CVPixelBuffer
+    }
+
     private let decoder = JPEGDecoder()
     private let sink = SinkStreamClient()
     private let state = OSAllocatedUnfairLock(initialState: State())
+    private let framing = OSAllocatedUnfairLock(initialState: Framing())
+    private let detector = PersonDetector()
+    private let detectionQueue = DispatchQueue(label: "com.github.thkwag.lumixwebcam.framing", qos: .userInitiated)
+    private let pools = PixelBufferPools()
+    private let started = ContinuousClock.now
     private let log = LumixLog.logger(category: "pipeline")
+
+    func setAutoFraming(_ enabled: Bool) {
+        framing.withLock { state in
+            state.enabled = enabled
+            state.framer = nil
+        }
+    }
+
+    /// The size of the picture the virtual camera's reader receives.
+    func setOutputSize(_ size: PixelSize) {
+        framing.withLock { state in
+            guard state.output != size else { return }
+            state.output = size
+            state.framer = nil
+        }
+    }
 
     func deliver(_ jpeg: LiveViewJPEG) {
         let picture: CVPixelBuffer
         do {
-            picture = try decoder.decode(jpeg.data)
+            picture = try framed(try decoder.decode(jpeg.data))
         } catch {
-            report("Decoding a live-view image failed: \(error)")
+            report("Preparing a live-view image failed: \(error)")
             return
         }
         guard connectIfDue() else { return }
@@ -38,6 +79,50 @@ final class FramePipeline: Sendable {
             return
         } catch {
             report("Sending a picture to the camera extension failed: \(error)")
+        }
+    }
+
+    /// The picture as the reader should see it: unchanged without automatic framing, otherwise the
+    /// framed crop at the reader's size.
+    private func framed(_ picture: CVPixelBuffer) throws(VideoError) -> CVPixelBuffer {
+        let elapsed = ContinuousClock.now - started
+        let now = Double(elapsed.components.seconds) + Double(elapsed.components.attoseconds) / 1e18
+        let source = picture.pixelSize
+        let plan = framing.withLock { state -> (rect: PixelRect, output: PixelSize, detect: Bool)? in
+            guard state.enabled, let output = state.output else { return nil }
+            var framer = state.framer.flatMap { $0.source == source ? $0 : nil } ?? AutoFramer(source: source, output: output)
+            let rect = framer.crop(at: now)
+            state.framer = framer
+            let detect = !state.detecting && state.lastDetection.map { now - $0 >= Self.detectionInterval } ?? true
+            if detect {
+                state.detecting = true
+                state.lastDetection = now
+            }
+            return (rect, output, detect)
+        }
+        guard let plan else { return picture }
+        if plan.detect {
+            let box = PictureBox(picture: picture)
+            detectionQueue.async { [self] in detectPeople(in: box.picture, at: now) }
+        }
+        let target = try pools.makeBuffer(size: plan.output)
+        try FrameCropper.crop(picture, to: plan.rect, into: target)
+        return target
+    }
+
+    private func detectPeople(in picture: CVPixelBuffer, at time: Double) {
+        let subjects: [FramingSubject]
+        do {
+            subjects = try detector.detect(in: picture)
+        } catch {
+            report("Looking for people failed: \(error)")
+            subjects = []
+        }
+        let source = picture.pixelSize
+        framing.withLock { state in
+            state.detecting = false
+            guard state.framer?.source == source else { return }
+            state.framer?.observe(subjects, at: time)
         }
     }
 

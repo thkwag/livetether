@@ -12,6 +12,7 @@ let package = Package(
         .library(name: "LumixVideo", targets: ["LumixVideo"]),
         .library(name: "LumixVirtualCamera", targets: ["LumixVirtualCamera"]),
         .executable(name: "lumix-sink-probe", targets: ["lumix-sink-probe"]),
+        .executable(name: "lumix-framing-probe", targets: ["lumix-framing-probe"]),
     ],
     targets: [
         .target(name: "LumixProtocol"),
@@ -20,6 +21,7 @@ let package = Package(
         .target(name: "LumixVideo"),
         .target(name: "LumixVirtualCamera", dependencies: ["LumixVideo", "LumixProtocol", "LumixSession"], resources: [.process("Resources")]),
         .executableTarget(name: "lumix-sink-probe", dependencies: ["LumixVideo", "LumixVirtualCamera"], path: "Tools/SinkProbe"),
+        .executableTarget(name: "lumix-framing-probe", dependencies: ["LumixVideo", "LumixVirtualCamera"], path: "Tools/FramingProbe"),
         .target(name: "LumixTestSupport", path: "Tests/LumixTestSupport"),
         .testTarget(name: "LumixProtocolTests", dependencies: ["LumixProtocol", "LumixTestSupport"]),
         .testTarget(name: "LumixSessionTests", dependencies: ["LumixSession", "LumixProtocol", "LumixTestSupport"]),

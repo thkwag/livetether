@@ -60,3 +60,5 @@
 "In any app that uses a camera, such as FaceTime, Zoom, OBS or QuickTime Player, choose LUMIX Webcam." = "FaceTime, Zoom, OBS, QuickTime Player 등 카메라를 쓰는 앱에서 LUMIX Webcam을 선택합니다.";
 "The earlier LUMIX Webcam Software is still installed. macOS 14.1 and later do not load it, and LUMIX Webcam replaces it." = "이전 LUMIX Webcam Software가 아직 설치되어 있습니다. macOS 14.1 이상에서는 이 소프트웨어를 로드하지 않으므로 LUMIX Webcam을 대신 사용합니다.";
 "Done" = "완료";
+"Auto Framing" = "자동 구도";
+"Keeps the people in front of the camera in the middle of the picture and follows them as they move, giving room on the side they look to. People are found on this Mac only; no picture is stored or sent." = "카메라 앞 사람을 화면 가운데에 두고 움직임을 따라가며, 바라보는 쪽에 여유 공간을 둡니다. 사람은 이 Mac에서만 찾으며 영상을 저장하거나 보내지 않습니다.";

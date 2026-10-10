@@ -11,6 +11,7 @@ final class AppSettings {
         static let productIDs = "allowedProductIDs"
         static let preferredSizes = "preferredLiveViewSizes"
         static let setupGuideCompleted = "setupGuideCompleted"
+        static let autoFramingEnabled = "autoFramingEnabled"
     }
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -25,12 +26,18 @@ final class AppSettings {
         didSet { defaults.set(setupGuideCompleted, forKey: Key.setupGuideCompleted) }
     }
 
+    /// Whether the picture is cropped to keep the people in front of the camera framed.
+    var autoFramingEnabled: Bool {
+        didSet { defaults.set(autoFramingEnabled, forKey: Key.autoFramingEnabled) }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         let storedIDs = defaults.array(forKey: Key.productIDs) as? [Int]
         productIDs = storedIDs.map(Set.init) ?? CameraFilter.defaultProductIDs
         preferredSizes = [:]
         setupGuideCompleted = defaults.bool(forKey: Key.setupGuideCompleted)
+        autoFramingEnabled = defaults.bool(forKey: Key.autoFramingEnabled)
         preferredSizes = loadPreferredSizes()
     }
 

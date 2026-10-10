@@ -101,6 +101,17 @@ struct CameraSettings: View {
                 }
                 SettingsNote("Automatic uses the widest size the camera offers at 30 fps. The list appears while the camera streams.")
             }
+            SettingsGroup("Auto Framing") {
+                LabeledContent("Auto Framing") {
+                    Toggle("Auto Framing", isOn: Binding(
+                        get: { model.settings.autoFramingEnabled },
+                        set: { model.setAutoFraming($0) }
+                    ))
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+                }
+                SettingsNote("Keeps the people in front of the camera in the middle of the picture and follows them as they move, giving room on the side they look to. People are found on this Mac only; no picture is stored or sent.")
+            }
             SettingsGroup("Live View") {
                 LabeledContent("Current size") {
                     Text(verbatim: status.liveView.map { StatusText.size($0.current) } ?? String(localized: "Not available"))
