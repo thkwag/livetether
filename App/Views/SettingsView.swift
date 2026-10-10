@@ -37,7 +37,7 @@ struct GeneralSettings: View {
                     Button("Install") { model.installer.install() }
                         .disabled(model.installer.state == .installed || model.installer.state == .installing)
                     Button("Uninstall") { model.installer.uninstall() }
-                        .disabled(model.installer.state != .installed)
+                        .disabled(model.installer.state != .installed && model.installer.state != .restartRequired)
                     if model.installer.state == .awaitingApproval {
                         Button("Open System Settings") { SystemSettings.openExtensions() }
                     }
