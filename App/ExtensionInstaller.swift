@@ -62,7 +62,8 @@ final class ExtensionInstaller: NSObject {
     }
 
     /// An enabled extension whose camera never appears to camera apps has not taken effect; macOS
-    /// applies it after a restart. The camera gets a few seconds to appear before saying so.
+    /// applies it after a restart. The camera gets a few seconds to appear before saying so, and the
+    /// restart notice goes away as soon as the camera appears.
     private func confirmDevicePresence() {
         Task { @MainActor [weak self] in
             for _ in 0..<10 {
@@ -72,6 +73,13 @@ final class ExtensionInstaller: NSObject {
             guard let self, self.state == .installed else { return }
             self.log.notice("The extension is enabled but its camera did not appear")
             self.state = .restartRequired
+            // The camera can still arrive late, or after the extension is installed again.
+            while self.state == .restartRequired {
+                try? await Task.sleep(for: .seconds(5))
+                if SinkStreamClient.isVirtualCameraPresent, self.state == .restartRequired {
+                    self.state = .installed
+                }
+            }
         }
     }
 
