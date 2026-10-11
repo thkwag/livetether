@@ -69,6 +69,8 @@ public actor CameraSession {
 
     private var isOpen = false
     private var nextTransactionID: UInt32 = 1
+    /// How far the device's transaction IDs run from the ones sent; only a change is logged.
+    private var transactionOffset: UInt32 = 0
     private var configuredSize: LiveViewSize?
     private var liveViewActive = false
 
@@ -153,6 +155,7 @@ public actor CameraSession {
         }
         isOpen = true
         nextTransactionID = 1
+        transactionOffset = 0
         let reply = try await perform(.panasonicOpenSession(), kind: .control, mayReopen: false)
         guard reply.response.code == .ok || reply.response.code == .sessionAlreadyOpen else {
             throw .unexpectedResponse(operation: PanasonicOperation.openSession, code: reply.response.code)
@@ -202,8 +205,10 @@ public actor CameraSession {
         let transactionID = takeTransactionID()
         let command = PTPCommand(request, transactionID: transactionID)
         let reply = try await transport.execute(command, dataOut: request.dataOut, timeout: timeout)
-        if reply.response.transactionID != transactionID {
-            log.notice("\(request.description, privacy: .public) answered with transaction \(reply.response.transactionID) instead of \(transactionID)")
+        let offset = reply.response.transactionID &- transactionID
+        if offset != transactionOffset {
+            transactionOffset = offset
+            log.notice("\(request.description, privacy: .public) answered with transaction \(reply.response.transactionID) instead of \(transactionID); replies at the same offset are not logged")
         }
         return reply
     }
