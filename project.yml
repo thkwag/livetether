@@ -11,7 +11,7 @@ settings:
     CODE_SIGN_STYLE: Automatic
     SWIFT_VERSION: "6.0"
     MARKETING_VERSION: "1.0.0"
-    CURRENT_PROJECT_VERSION: "6"
+    CURRENT_PROJECT_VERSION: "7"
     ENABLE_HARDENED_RUNTIME: YES
     DEAD_CODE_STRIPPING: YES
 packages:
@@ -58,6 +58,10 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.github.thkwag.lumixwebcam.CameraExtension
+        # The extension keeps its own build number and changes it only when the extension changes:
+        # the app replaces an installed extension whose build number differs from the bundled one,
+        # and macOS may not start a replaced extension until the Mac restarts.
+        CURRENT_PROJECT_VERSION: "6"
         PRODUCT_NAME: com.github.thkwag.lumixwebcam.CameraExtension
         INFOPLIST_FILE: CameraExtension/Info.plist
         CODE_SIGN_ENTITLEMENTS: CameraExtension/CameraExtension.entitlements

@@ -106,8 +106,9 @@ The menu bar icon opens a menu with the camera status, Auto Framing, the setting
 If the camera is connected but LiveTether does not find it, look up the camera's product ID in
 System Information > USB and add it on the Advanced tab.
 
-If LiveTether does not appear as a camera in other apps, click Uninstall and then Install on the
-General tab, and allow the extension again in System Settings.
+If LiveTether does not appear as a camera in other apps after an update, the General tab shows that
+a restart is needed. Restart the Mac, or click Reinstall and allow the extension again in System
+Settings.
 
 To remove LiveTether, click Uninstall on the General tab, then delete the app.
 

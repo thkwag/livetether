@@ -24,7 +24,15 @@ final class ExtensionInstaller: NSObject {
         case inspect
         case activate
         case deactivate
+        /// Deactivates, then activates again once the old extension has stopped.
+        case reinstall
     }
+
+    /// When an extension replaces another of the same identifier, macOS removes the old extension's
+    /// launch job asynchronously and can try to start the new one under the same job label before
+    /// the removal finishes; the new extension then does not start until a restart. A deactivation
+    /// followed by a separate activation avoids that, so a reinstall waits this long in between.
+    private static let reinstallPause: Duration = .seconds(3)
 
     static let extensionIdentifier = "com.github.thkwag.lumixwebcam.CameraExtension"
 
@@ -59,6 +67,17 @@ final class ExtensionInstaller: NSObject {
     func uninstall() {
         state = .uninstalling
         submit(.deactivationRequest(forExtensionWithIdentifier: Self.extensionIdentifier, queue: .main), action: .deactivate)
+    }
+
+    /// Removes the installed extension and installs the bundled one again; the user approves it again.
+    /// Used when a replaced extension did not start, at which point the installed build is the bundled one.
+    func reinstall() {
+        guard isInApplicationsFolder else {
+            state = .outsideApplicationsFolder
+            return
+        }
+        state = .uninstalling
+        submit(.deactivationRequest(forExtensionWithIdentifier: Self.extensionIdentifier, queue: .main), action: .reinstall)
     }
 
     /// An enabled extension whose camera never appears to camera apps has not taken effect; macOS
@@ -96,7 +115,7 @@ extension ExtensionInstaller: @preconcurrency OSSystemExtensionRequestDelegate {
         actionForReplacingExtension existing: OSSystemExtensionProperties,
         withExtension ext: OSSystemExtensionProperties
     ) -> OSSystemExtensionRequest.ReplacementAction {
-        log.info("Replacing extension \(existing.bundleShortVersion, privacy: .public) with \(ext.bundleShortVersion, privacy: .public)")
+        log.info("Replacing extension build \(existing.bundleVersion, privacy: .public) with \(ext.bundleVersion, privacy: .public)")
         return .replace
     }
 
@@ -107,9 +126,20 @@ extension ExtensionInstaller: @preconcurrency OSSystemExtensionRequestDelegate {
     func request(_ request: OSSystemExtensionRequest, didFinishWithResult result: OSSystemExtensionRequest.Result) {
         switch result {
         case .completed:
-            state = pendingAction == .deactivate ? .notInstalled : .installed
-            if pendingAction == .activate {
+            switch pendingAction {
+            case .deactivate:
+                state = .notInstalled
+            case .reinstall:
+                state = .installing
+                Task { @MainActor [weak self] in
+                    try? await Task.sleep(for: Self.reinstallPause)
+                    self?.install()
+                }
+            case .activate:
+                state = .installed
                 confirmDevicePresence()
+            case .inspect:
+                state = .installed
             }
         case .willCompleteAfterReboot:
             state = .restartRequired
@@ -127,7 +157,9 @@ extension ExtensionInstaller: @preconcurrency OSSystemExtensionRequestDelegate {
         if let enabled = properties.first(where: { $0.isEnabled }) {
             state = .installed
             confirmDevicePresence()
-            // An app update carries a new extension; activating it replaces the installed one.
+            // An app update carries a new extension; activating it replaces the installed one. A
+            // deactivation cannot be used here: it fails while the installed build differs from the
+            // bundled one.
             if let bundled = Self.bundledExtensionVersion, enabled.bundleVersion != bundled, isInApplicationsFolder {
                 log.info("Installed extension \(enabled.bundleVersion, privacy: .public) differs from bundled \(bundled, privacy: .public)")
                 install()

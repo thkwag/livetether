@@ -42,6 +42,12 @@ struct GeneralSettings: View {
                     if model.installer.state == .awaitingApproval {
                         Button("Open System Settings") { SystemSettings.openExtensions() }
                     }
+                    if model.installer.state == .restartRequired {
+                        Button("Reinstall") { model.installer.reinstall() }
+                    }
+                }
+                if model.installer.state == .restartRequired {
+                    SettingsNote("macOS has not started the camera extension. Restart your Mac, or click Reinstall and turn LiveTether on again in System Settings.")
                 }
             }
             SettingsGroup("Startup") {

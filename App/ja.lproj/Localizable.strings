@@ -29,6 +29,8 @@
 "Status" = "状態";
 "Install" = "インストール";
 "Uninstall" = "アンインストール";
+"Reinstall" = "再インストール";
+"macOS has not started the camera extension. Restart your Mac, or click Reinstall and turn LiveTether on again in System Settings." = "macOSがカメラ機能拡張を起動していません。Macを再起動するか、「再インストール」をクリックしたあと、システム設定でLiveTetherをもう一度オンにしてください。";
 "Open System Settings" = "システム設定を開く";
 "Startup" = "自動起動";
 "Open at login" = "ログイン時に開く";
