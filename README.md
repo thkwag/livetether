@@ -10,6 +10,10 @@ LiveTether turns the live view of a Panasonic LUMIX camera connected over USB in
 macOS 14.1 and later. Any app that uses a camera can choose it: FaceTime, QuickTime Player, OBS,
 web browsers and video-conferencing apps.
 
+The picture is the camera's live view, the small monitor image a camera sends over USB for remote
+shooting, not its recorded video. It is softer than a webcam picture should be; for the camera's
+full video quality, use its HDMI output with a capture device (see [Limitations](#limitations)).
+
 Panasonic's LUMIX Webcam Software does not support macOS 14.1 and later. LiveTether is a separate
 app built on Apple's Core Media I/O camera extension API.
 
@@ -38,6 +42,28 @@ set the live-view size, turn live view on and off, and fetch live-view frames. T
 operations and their parameters are documented in the open-source
 [libgphoto2](https://github.com/gphoto/libgphoto2) project (`camlibs/ptp2/ptp.h`). The app never
 sends commands that change camera settings, format a card or update firmware.
+
+## Limitations
+
+LiveTether can only pass on what the camera sends over USB, and over USB a LUMIX camera sends its
+live view, not its recorded video:
+
+- The camera sets the largest live-view size. A DC-GH6 offers 640 × 480, 960 × 720 and
+  1280 × 960 at 30 fps, and each frame is a heavily compressed JPEG. Scaled to 1080p, the picture
+  is soft, so it falls short of what a webcam is expected to deliver.
+- The picture has the camera's current framing and aspect ratio. In a photo mode it is the photo
+  aspect ratio (3:2, for example) with black bars around it; in a video mode it is the video
+  framing.
+- Display aids the camera shows on its monitor, such as the zebra pattern, are part of the
+  picture. Turn them off on the camera.
+- The camera has no USB webcam mode to fall back on: a DC-GH6 offers only PC(Storage),
+  PC(Tether) and PictBridge(PTP).
+
+For the camera's full video quality, connect its HDMI output to a USB HDMI capture device. macOS
+shows the capture device as a camera of its own, so video apps can choose it directly without
+LiveTether; Auto Framing then does not apply. Put the camera in a video mode and turn off the
+information display on the HDMI output. A DC-GH6 keeps its HDMI output while it is connected in
+PC(Tether) mode, so the USB and HDMI connections can be used at the same time.
 
 ## Requirements
 
