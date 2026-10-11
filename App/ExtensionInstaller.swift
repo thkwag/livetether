@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import LumixProtocol
 import LumixVirtualCamera
@@ -38,6 +39,8 @@ final class ExtensionInstaller: NSObject {
 
     private(set) var state: State = .checking
     @ObservationIgnored private var pendingAction: Action = .inspect
+    /// Set when an activation replaces an installed extension or follows a deactivation.
+    @ObservationIgnored private var activationSupersedesExtension = false
     @ObservationIgnored private let log = LumixLog.logger(category: "installer")
 
     /// System extensions can only be activated by an app inside the Applications folder.
@@ -80,16 +83,41 @@ final class ExtensionInstaller: NSObject {
         submit(.deactivationRequest(forExtensionWithIdentifier: Self.extensionIdentifier, queue: .main), action: .reinstall)
     }
 
+    /// A process that was running while its camera extension was replaced, or that started before
+    /// the new extension published its camera, keeps its old camera list and never sees the new
+    /// camera, so it cannot feed it. An instance started after the camera was published sees it.
+    private func relaunch() {
+        log.notice("Relaunching to see the camera of the new extension")
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.createsNewApplicationInstance = true
+        configuration.activates = false
+        NSWorkspace.shared.openApplication(at: Bundle.main.bundleURL, configuration: configuration) { [log] _, error in
+            Task { @MainActor in
+                if let error {
+                    log.error("Relaunch failed: \(error.localizedDescription, privacy: .public)")
+                    return
+                }
+                NSApp.terminate(nil)
+            }
+        }
+    }
+
     /// An enabled extension whose camera never appears to camera apps has not taken effect; macOS
     /// applies it after a restart. The camera gets a few seconds to appear before saying so, and the
-    /// restart notice goes away as soon as the camera appears.
-    private func confirmDevicePresence() {
+    /// restart notice goes away as soon as the camera appears. After this process replaced the
+    /// extension its own camera list is stale (see `relaunch`), so it relaunches instead; the new
+    /// instance, started after the wait, decides whether a restart is needed.
+    private func confirmDevicePresence(relaunchIfMissing: Bool = false) {
         Task { @MainActor [weak self] in
             for _ in 0..<10 {
                 if SinkStreamClient.isVirtualCameraPresent { return }
                 try? await Task.sleep(for: .seconds(1))
             }
             guard let self, self.state == .installed else { return }
+            if relaunchIfMissing {
+                self.relaunch()
+                return
+            }
             self.log.notice("The extension is enabled but its camera did not appear")
             self.state = .restartRequired
             // The camera can still arrive late, or after the extension is installed again.
@@ -116,6 +144,7 @@ extension ExtensionInstaller: @preconcurrency OSSystemExtensionRequestDelegate {
         withExtension ext: OSSystemExtensionProperties
     ) -> OSSystemExtensionRequest.ReplacementAction {
         log.info("Replacing extension build \(existing.bundleVersion, privacy: .public) with \(ext.bundleVersion, privacy: .public)")
+        activationSupersedesExtension = true
         return .replace
     }
 
@@ -131,13 +160,15 @@ extension ExtensionInstaller: @preconcurrency OSSystemExtensionRequestDelegate {
                 state = .notInstalled
             case .reinstall:
                 state = .installing
+                activationSupersedesExtension = true
                 Task { @MainActor [weak self] in
                     try? await Task.sleep(for: Self.reinstallPause)
                     self?.install()
                 }
             case .activate:
                 state = .installed
-                confirmDevicePresence()
+                confirmDevicePresence(relaunchIfMissing: activationSupersedesExtension)
+                activationSupersedesExtension = false
             case .inspect:
                 state = .installed
             }
@@ -156,13 +187,14 @@ extension ExtensionInstaller: @preconcurrency OSSystemExtensionRequestDelegate {
     func request(_ request: OSSystemExtensionRequest, foundProperties properties: [OSSystemExtensionProperties]) {
         if let enabled = properties.first(where: { $0.isEnabled }) {
             state = .installed
-            confirmDevicePresence()
             // An app update carries a new extension; activating it replaces the installed one. A
             // deactivation cannot be used here: it fails while the installed build differs from the
             // bundled one.
             if let bundled = Self.bundledExtensionVersion, enabled.bundleVersion != bundled, isInApplicationsFolder {
                 log.info("Installed extension \(enabled.bundleVersion, privacy: .public) differs from bundled \(bundled, privacy: .public)")
                 install()
+            } else {
+                confirmDevicePresence()
             }
         } else if properties.contains(where: { $0.isAwaitingUserApproval }) {
             state = .awaitingApproval
